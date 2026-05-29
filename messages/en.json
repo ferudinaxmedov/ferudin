@@ -1,0 +1,59 @@
+{
+  "nav": {
+    "work": "Work",
+    "services": "Services",
+    "about": "About",
+    "contact": "Contact",
+    "workspace": "Workspace"
+  },
+  "hero": {
+    "role": "Web Designer & Developer",
+    "greeting": "Hi, I'm",
+    "tagline": "I craft digital experiences",
+    "sub": "Ferudin — a boutique web design & development studio. Building elegant, high-performance websites for ambitious brands that refuse to be ordinary.",
+    "cta_work": "See My Work",
+    "cta_contact": "Get In Touch"
+  },
+  "tools": "Technologies I work with",
+  "services": {
+    "label": "Services",
+    "heading": "What I do",
+    "web_design": "Web Design",
+    "web_design_desc": "Interfaces that command attention and guide users effortlessly.",
+    "web_dev": "Web Development",
+    "web_dev_desc": "Clean, performant code built to scale.",
+    "branding": "Brand Identity",
+    "branding_desc": "Visual systems that work everywhere.",
+    "ui_ux": "UI/UX",
+    "ui_ux_desc": "Putting the user experience first, always."
+  },
+  "work": {
+    "label": "Projects",
+    "heading": "Selected Work",
+    "view_all": "View All"
+  },
+  "about": {
+    "label": "About",
+    "heading": "Who am I?",
+    "bio": "I'm Ferudin — a web designer and developer. I believe every pixel must be intentional, every interaction considered. I turn ideas into extraordinary digital products.",
+    "years": "Years of experience",
+    "projects": "Projects delivered",
+    "clients": "Happy clients"
+  },
+  "contact": {
+    "label": "Contact",
+    "heading": "Let's build something extraordinary",
+    "sub": "You have an idea — I'm ready to bring it to life.",
+    "telegram": "Telegram",
+    "instagram": "Instagram",
+    "email": "Email"
+  },
+  "footer": {
+    "copy": "Ferudin. All rights reserved."
+  },
+  "lang": {
+    "uz": "O'zbek",
+    "ru": "Русский",
+    "en": "English"
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "nav": {
+    "work": "Ishlarim",
+    "services": "Xizmatlar",
+    "about": "Men haqimda",
+    "contact": "Aloqa",
+    "workspace": "Workspace"
+  },
+  "hero": {
+    "role": "Web Designer & Developer",
+    "greeting": "Salom, men",
+    "tagline": "Digital tajribalar yarataman",
+    "sub": "Ferudin — boutique web dizayn va dasturlash studiyasi. Oddiy bo'lishdan bosh tortgan brandlar uchun elegant, yuqori unumli saytlar quraman.",
+    "cta_work": "Ishlarimni ko'rish",
+    "cta_contact": "Bog'lanish"
+  },
+  "tools": "Ishlatadigan texnologiyalar",
+  "services": {
+    "label": "Xizmatlar",
+    "heading": "Nima qilaman",
+    "web_design": "Web Dizayn",
+    "web_design_desc": "Foydalanuvchilarni befarq qoldirmaydigan interfeyslar.",
+    "web_dev": "Web Dasturlash",
+    "web_dev_desc": "Tez, zamonaviy va kengayadigan kod.",
+    "branding": "Brending",
+    "branding_desc": "Hamma joyda ishlaydi digan vizual sistema.",
+    "ui_ux": "UI/UX",
+    "ui_ux_desc": "Foydalanuvchi tajribasini birinchi o'ringa qo'yaman."
+  },
+  "work": {
+    "label": "Loyihalar",
+    "heading": "Tanlangan ishlar",
+    "view_all": "Barchasini ko'rish"
+  },
+  "about": {
+    "label": "Men haqimda",
+    "heading": "Kim men?",
+    "bio": "Men Ferudin — web dizayner va dasturchi. Har bir piksel maqsadga yo'naltirilgan, har bir o'zaro ta'sir o'ylangan bo'lishi kerak deb ishonaman. Oddiy narsalardan ajoyib narsalar yaratamanlar qatoridaman.",
+    "years": "Yil tajriba",
+    "projects": "Loyiha",
+    "clients": "Mijoz"
+  },
+  "contact": {
+    "label": "Aloqa",
+    "heading": "Keling, biror ajoyib narsa quramiz",
+    "sub": "Sizning g'oyangiz bor — men uni hayotga tatbiq etishga tayyorman.",
+    "telegram": "Telegram",
+    "instagram": "Instagram",
+    "email": "Email"
+  },
+  "footer": {
+    "copy": "Ferudin. Barcha huquqlar himoyalangan."
+  },
+  "lang": {
+    "uz": "O'zbek",
+    "ru": "Русский",
+    "en": "English"
+  }
+}
