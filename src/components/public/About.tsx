@@ -32,35 +32,33 @@ export default function About() {
           {/* Left — Visual */}
           <div className="reveal relative order-2 lg:order-1">
             <div
-              className="relative rounded-3xl border overflow-hidden p-8"
+              className="relative rounded-3xl border overflow-hidden"
               style={{ borderColor: 'var(--b)', background: 'var(--surface)' }}
             >
-              {/* Top glow */}
-              <div
-                className="absolute top-0 left-0 right-0 h-32 opacity-40"
-                style={{ background: 'linear-gradient(to bottom, rgba(34,197,94,0.08), transparent)' }}
-                aria-hidden
-              />
-
-              {/* Big letter */}
-              <div className="relative z-10 mb-8 flex items-center justify-center h-48">
-                <span
-                  className="font-black select-none"
-                  style={{
-                    fontSize: 'clamp(100px, 20vw, 180px)',
-                    color: 'rgba(34,197,94,0.06)',
-                    lineHeight: 1,
-                    letterSpacing: '-0.05em',
-                  }}
+              {/* Photo */}
+              <div className="relative w-full" style={{ aspectRatio: '3/4' }}>
+                <img
+                  src="/ferudin-about.jpg"
+                  alt="Ferudin Axmedov"
+                  className="w-full h-full object-cover object-center"
+                />
+                {/* Dark overlay at bottom for stats */}
+                <div
+                  className="absolute inset-0"
+                  style={{ background: 'linear-gradient(to bottom, transparent 45%, rgba(8,8,8,0.85) 100%)' }}
                   aria-hidden
-                >
-                  F
-                </span>
+                />
+                {/* Green top accent */}
+                <div
+                  className="absolute top-0 left-0 right-0 h-1"
+                  style={{ background: 'linear-gradient(90deg, var(--g), transparent)' }}
+                  aria-hidden
+                />
               </div>
 
               {/* Stats */}
               <div
-                className="relative z-10 grid grid-cols-3 border-t"
+                className="grid grid-cols-3 border-t"
                 style={{ borderColor: 'var(--b)' }}
               >
                 {[

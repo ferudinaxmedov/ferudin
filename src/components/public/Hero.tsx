@@ -173,10 +173,14 @@ export default function Hero() {
               {/* Profile area */}
               <div className="relative z-10 p-6 flex flex-col items-center text-center">
                 <div
-                  className="w-24 h-24 rounded-full border-2 flex items-center justify-center mb-4 text-4xl font-black"
-                  style={{ borderColor: 'var(--g-border)', background: 'var(--surface2)' }}
+                  className="w-24 h-24 rounded-full border-2 overflow-hidden mb-4"
+                  style={{ borderColor: 'var(--g-border)' }}
                 >
-                  <span className="gradient-text">F</span>
+                  <img
+                    src="/ferudin-profile.jpg"
+                    alt="Ferudin Axmedov"
+                    className="w-full h-full object-cover object-top"
+                  />
                 </div>
                 <p className="text-white font-bold text-lg leading-none">Ferudin</p>
                 <p className="text-[var(--g)] text-[11px] font-semibold tracking-widest uppercase mt-1.5 mb-5">
