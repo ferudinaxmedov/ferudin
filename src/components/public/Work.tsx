@@ -2,44 +2,44 @@
 
 import { useTranslations } from 'next-intl';
 
-const projects = [
-  {
-    title: 'DentaFlow',
-    url: 'https://dentaflow.uz',
-    category: 'CRM · Stomatologiya',
-    desc: 'Stomatologiya klinikalari uchun CRM tizim',
-    gradient: 'linear-gradient(135deg, #0a1628 0%, #0d2a4a 50%, #0a3d6b 100%)',
-    accent: '#0ea5e9',
-    span: 'col-span-1 md:col-span-2',
-    aspect: 'aspect-video',
-    label: 'dentaflow.uz',
-  },
-  {
-    title: 'HamidaStom',
-    url: 'https://hamidastom.uz',
-    category: 'Web Sayt · Tibbiyot',
-    desc: 'Stomatologiya klinikasi web sayt',
-    gradient: 'linear-gradient(135deg, #0d1f12 0%, #0f3320 100%)',
-    accent: '#22c55e',
-    span: 'col-span-1',
-    aspect: 'aspect-square',
-    label: 'hamidastom.uz',
-  },
-  {
-    title: 'Loyiha №3',
-    url: '#contact',
-    category: 'Web Dizayn · Landing',
-    desc: 'Korporativ landing page dizayn',
-    gradient: 'linear-gradient(135deg, #1a0f28 0%, #2d1b4e 100%)',
-    accent: '#a855f7',
-    span: 'col-span-1',
-    aspect: 'aspect-square',
-    label: 'coming soon',
-  },
-];
-
 export default function Work() {
   const t = useTranslations('work');
+
+  const projects = [
+    {
+      title: 'DentaFlow',
+      url: 'https://dentaflow.uz',
+      category: t('dentaflow_cat'),
+      desc: t('dentaflow_desc'),
+      gradient: 'linear-gradient(135deg, #0a1628 0%, #0d2a4a 50%, #0a3d6b 100%)',
+      accent: '#0ea5e9',
+      span: 'col-span-1 md:col-span-2',
+      aspect: 'aspect-video',
+      label: 'dentaflow.uz',
+    },
+    {
+      title: 'HamidaStom',
+      url: 'https://hamidastom.uz',
+      category: t('hamidastom_cat'),
+      desc: t('hamidastom_desc'),
+      gradient: 'linear-gradient(135deg, #0d1f12 0%, #0f3320 100%)',
+      accent: '#22c55e',
+      span: 'col-span-1',
+      aspect: 'aspect-square',
+      label: 'hamidastom.uz',
+    },
+    {
+      title: t('p3_title'),
+      url: '#contact',
+      category: t('p3_cat'),
+      desc: t('p3_desc'),
+      gradient: 'linear-gradient(135deg, #1a0f28 0%, #2d1b4e 100%)',
+      accent: '#a855f7',
+      span: 'col-span-1',
+      aspect: 'aspect-square',
+      label: t('p3_label'),
+    },
+  ];
 
   return (
     <section id="work" className="py-28 px-6 relative">
@@ -130,10 +130,7 @@ export default function Work() {
                 style={{ background: 'linear-gradient(to top, rgba(8,8,8,0.92) 0%, rgba(8,8,8,0.05) 55%, transparent 100%)' }}
               >
                 <div className="absolute bottom-0 left-0 right-0 p-5">
-                  <p
-                    className="text-[10px] font-semibold tracking-[0.13em] uppercase mb-2"
-                    style={{ color: p.accent }}
-                  >
+                  <p className="text-[10px] font-semibold tracking-[0.13em] uppercase mb-2" style={{ color: p.accent }}>
                     {p.category}
                   </p>
                   <h3 className="text-white font-black text-xl leading-tight mb-1">{p.title}</h3>
@@ -142,9 +139,7 @@ export default function Work() {
               </div>
 
               {/* Arrow */}
-              <div
-                className="absolute top-4 right-4 w-8 h-8 rounded-full border border-white/15 flex items-center justify-center text-white opacity-0 scale-75 group-hover:opacity-100 group-hover:scale-100 transition-all duration-250"
-              >
+              <div className="absolute top-4 right-4 w-8 h-8 rounded-full border border-white/15 flex items-center justify-center text-white opacity-0 scale-75 group-hover:opacity-100 group-hover:scale-100 transition-all duration-250">
                 <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
                   <path d="M2 6h8M6.5 2.5l4 3.5-4 3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>

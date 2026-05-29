@@ -14,7 +14,15 @@
     "cta_work": "See My Work",
     "cta_contact": "Get In Touch",
     "badge_exp": "1 year of experience",
-    "badge_vibe": "Vibe Coding"
+    "badge_vibe": "Vibe Coding",
+    "card_surname": "Ahmedov",
+    "card_role": "Web Designer & Dev",
+    "card_chips": "Web Design · CRM · UI/UX",
+    "card_vibe": "Vibe Coder",
+    "card_connect": "Contact",
+    "stat_projects": "Projects",
+    "stat_years": "Year",
+    "stat_quality": "Quality"
   },
   "tools": "Technologies I work with",
   "services": {
@@ -32,7 +40,15 @@
   "work": {
     "label": "Projects",
     "heading": "Selected Work",
-    "view_all": "View All"
+    "view_all": "View All",
+    "dentaflow_cat": "CRM · Dentistry",
+    "dentaflow_desc": "CRM system for dental clinics",
+    "hamidastom_cat": "Website · Medical",
+    "hamidastom_desc": "Dental clinic website",
+    "p3_title": "Project #3",
+    "p3_cat": "Web Design · Landing",
+    "p3_desc": "Corporate landing page design",
+    "p3_label": "coming soon"
   },
   "about": {
     "label": "About",
@@ -40,7 +56,9 @@
     "bio": "I'm Ferudin — web designer & developer. Vibe coding is my path: I rapidly turn ideas into prototypes and prototypes into real products. Every project is a problem solved.",
     "years": "Year of experience",
     "projects": "Projects completed",
-    "clients": "Happy clients"
+    "clients": "Happy clients",
+    "badge_location": "🇺🇿 Tashkent",
+    "badge_vibe": "⚡ Vibe Coder"
   },
   "contact": {
     "label": "Contact",
@@ -49,7 +67,8 @@
     "telegram": "Telegram",
     "instagram": "Instagram",
     "email": "Email",
-    "phone": "Phone"
+    "phone": "Phone",
+    "cta": "Message on Telegram"
   },
   "footer": {
     "copy": "Ferudin. All rights reserved."

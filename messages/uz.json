@@ -14,7 +14,15 @@
     "cta_work": "Ishlarimni ko'rish",
     "cta_contact": "Bog'lanish",
     "badge_exp": "1 yillik tajriba",
-    "badge_vibe": "Vibe Coding"
+    "badge_vibe": "Vibe Coding",
+    "card_surname": "Ahmedov",
+    "card_role": "Web Designer & Dev",
+    "card_chips": "Web Dizayn · CRM · UI/UX",
+    "card_vibe": "Vibe Coder",
+    "card_connect": "Bog'lanish",
+    "stat_projects": "Loyiha",
+    "stat_years": "Yil",
+    "stat_quality": "Sifat"
   },
   "tools": "Ishlatadigan texnologiyalar",
   "services": {
@@ -32,15 +40,25 @@
   "work": {
     "label": "Loyihalar",
     "heading": "Tanlangan ishlar",
-    "view_all": "Hammasi"
+    "view_all": "Hammasi",
+    "dentaflow_cat": "CRM · Stomatologiya",
+    "dentaflow_desc": "Stomatologiya klinikalari uchun CRM tizim",
+    "hamidastom_cat": "Web Sayt · Tibbiyot",
+    "hamidastom_desc": "Stomatologiya klinikasi web sayt",
+    "p3_title": "Loyiha №3",
+    "p3_cat": "Web Dizayn · Landing",
+    "p3_desc": "Korporativ landing page dizayn",
+    "p3_label": "tez kunda"
   },
   "about": {
     "label": "Men haqimda",
-    "heading": "Kim men?",
+    "heading": "Men kimman?",
     "bio": "Men Ferudin — web dizayner va dasturchi. Vibe coding mening yo'lim: g'oyani tezda prototipga, prototipni real mahsulotga aylantirib beraman. Har bir loyiha — bu muammo yechimi.",
     "years": "Yil tajriba",
     "projects": "Tugallangan loyiha",
-    "clients": "Mamnun mijoz"
+    "clients": "Mamnun mijoz",
+    "badge_location": "🇺🇿 Toshkent",
+    "badge_vibe": "⚡ Vibe Coder"
   },
   "contact": {
     "label": "Aloqa",
@@ -49,7 +67,8 @@
     "telegram": "Telegram",
     "instagram": "Instagram",
     "email": "Email",
-    "phone": "Telefon"
+    "phone": "Telefon",
+    "cta": "Telegram orqali yozing"
   },
   "footer": {
     "copy": "Ferudin. Barcha huquqlar himoyalangan."

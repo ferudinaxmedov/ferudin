@@ -14,7 +14,15 @@
     "cta_work": "Мои работы",
     "cta_contact": "Связаться",
     "badge_exp": "1 год опыта",
-    "badge_vibe": "Vibe Coding"
+    "badge_vibe": "Vibe Coding",
+    "card_surname": "Ahmedov",
+    "card_role": "Веб-дизайнер & Разработчик",
+    "card_chips": "Веб-дизайн · CRM · UI/UX",
+    "card_vibe": "Vibe Coder",
+    "card_connect": "Написать",
+    "stat_projects": "Проекты",
+    "stat_years": "Год",
+    "stat_quality": "Качество"
   },
   "tools": "Технологии которые использую",
   "services": {
@@ -32,7 +40,15 @@
   "work": {
     "label": "Проекты",
     "heading": "Избранные работы",
-    "view_all": "Все работы"
+    "view_all": "Все работы",
+    "dentaflow_cat": "CRM · Стоматология",
+    "dentaflow_desc": "CRM система для стоматологических клиник",
+    "hamidastom_cat": "Сайт · Медицина",
+    "hamidastom_desc": "Сайт стоматологической клиники",
+    "p3_title": "Проект №3",
+    "p3_cat": "Веб-дизайн · Лендинг",
+    "p3_desc": "Дизайн корпоративного лендинга",
+    "p3_label": "скоро"
   },
   "about": {
     "label": "Обо мне",
@@ -40,7 +56,9 @@
     "bio": "Я Ferudin — веб-дизайнер и разработчик. Vibe coding — мой путь: быстро превращаю идею в прототип, а прототип в реальный продукт. Каждый проект — решение конкретной задачи.",
     "years": "Год опыта",
     "projects": "Завершённых проектов",
-    "clients": "Довольных клиентов"
+    "clients": "Довольных клиентов",
+    "badge_location": "🇺🇿 Ташкент",
+    "badge_vibe": "⚡ Vibe Coder"
   },
   "contact": {
     "label": "Контакт",
@@ -49,7 +67,8 @@
     "telegram": "Telegram",
     "instagram": "Instagram",
     "email": "Email",
-    "phone": "Телефон"
+    "phone": "Телефон",
+    "cta": "Написать в Telegram"
   },
   "footer": {
     "copy": "Ferudin. Все права защищены."

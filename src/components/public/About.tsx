@@ -253,7 +253,7 @@ export default function About() {
                     backdropFilter: 'blur(8px)',
                   }}
                 >
-                  ⚡ Vibe Coder
+                  {t('badge_vibe')}
                 </div>
 
                 {/* Floating badge — bottom left */}
@@ -269,7 +269,7 @@ export default function About() {
                     backdropFilter: 'blur(8px)',
                   }}
                 >
-                  🇺🇿 Tashkent
+                  {t('badge_location')}
                 </div>
               </div>
 

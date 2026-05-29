@@ -178,18 +178,18 @@ export default function Hero() {
                 >
                   <img
                     src="/ferudin-profile.jpg"
-                    alt="Ferudin Axmedov"
+                    alt="Ferudin Ahmedov"
                     className="w-full h-full object-cover object-top"
                   />
                 </div>
                 <p className="text-white font-bold text-lg leading-none">Ferudin</p>
-                <p className="text-[var(--g)] text-[11px] font-semibold tracking-widest uppercase mt-1.5 mb-5">
-                  Axmedov
+                <p className="text-[var(--g)] text-[11px] font-semibold tracking-widest uppercase mt-1.5 mb-4">
+                  {t('card_surname')}
                 </p>
 
                 {/* Service chips */}
                 <div className="flex flex-wrap gap-2 justify-center mb-5">
-                  {['Web Dizayn', 'CRM', 'UI/UX', 'Vibe Coder'].map(s => (
+                  {t('card_chips').split(' · ').map(s => (
                     <span
                       key={s}
                       className="px-3 py-1 rounded-full text-[11px] font-semibold border"
@@ -198,6 +198,12 @@ export default function Hero() {
                       {s}
                     </span>
                   ))}
+                  <span
+                    className="px-3 py-1 rounded-full text-[11px] font-semibold border"
+                    style={{ borderColor: 'rgba(168,85,247,0.3)', background: 'rgba(168,85,247,0.08)', color: '#a855f7' }}
+                  >
+                    {t('card_vibe')}
+                  </span>
                 </div>
 
                 {/* Contact mini */}
@@ -207,7 +213,7 @@ export default function Hero() {
                   rel="noopener noreferrer"
                   className="w-full py-2.5 rounded-xl font-bold text-sm text-black bg-[var(--g)] hover:bg-[#4ade80] transition-colors duration-200"
                 >
-                  Bog'lanish
+                  {t('card_connect')}
                 </a>
               </div>
 
@@ -217,9 +223,9 @@ export default function Hero() {
                 style={{ borderColor: 'var(--b)' }}
               >
                 {[
-                  { n: '3+', l: 'Loyiha' },
-                  { n: '1', l: 'Yil' },
-                  { n: '100%', l: 'Sifat' },
+                  { n: '3+', l: t('stat_projects') },
+                  { n: '1', l: t('stat_years') },
+                  { n: '100%', l: t('stat_quality') },
                 ].map((s, i) => (
                   <div
                     key={s.l}
