@@ -9,23 +9,25 @@
   "hero": {
     "role": "Web Designer & Developer",
     "greeting": "Hi, I'm",
-    "tagline": "I craft digital experiences",
-    "sub": "Ferudin — a boutique web design & development studio. Building elegant, high-performance websites for ambitious brands that refuse to be ordinary.",
+    "tagline": "I build digital products",
+    "sub": "Modern websites, CRM systems & UI/UX design — I turn your ideas into products that actually work.",
     "cta_work": "See My Work",
-    "cta_contact": "Get In Touch"
+    "cta_contact": "Get In Touch",
+    "badge_exp": "1 year of experience",
+    "badge_vibe": "Vibe Coding"
   },
   "tools": "Technologies I work with",
   "services": {
     "label": "Services",
     "heading": "What I do",
-    "web_design": "Web Design",
-    "web_design_desc": "Interfaces that command attention and guide users effortlessly.",
-    "web_dev": "Web Development",
-    "web_dev_desc": "Clean, performant code built to scale.",
-    "branding": "Brand Identity",
-    "branding_desc": "Visual systems that work everywhere.",
-    "ui_ux": "UI/UX",
-    "ui_ux_desc": "Putting the user experience first, always."
+    "s1_title": "Web Design",
+    "s1_desc": "Modern interfaces and landing pages that reflect your brand and convert visitors into customers.",
+    "s2_title": "CRM Systems",
+    "s2_desc": "Custom client management systems built for your business — automate, track, and scale.",
+    "s3_title": "Web Development",
+    "s3_desc": "Fast, reliable and scalable web applications built with Next.js, React and modern stack.",
+    "s4_title": "UI/UX Design",
+    "s4_desc": "Designing every screen with the user journey in mind — purposeful and intuitive."
   },
   "work": {
     "label": "Projects",
@@ -35,25 +37,26 @@
   "about": {
     "label": "About",
     "heading": "Who am I?",
-    "bio": "I'm Ferudin — a web designer and developer. I believe every pixel must be intentional, every interaction considered. I turn ideas into extraordinary digital products.",
-    "years": "Years of experience",
-    "projects": "Projects delivered",
+    "bio": "I'm Ferudin — web designer & developer. Vibe coding is my path: I rapidly turn ideas into prototypes and prototypes into real products. Every project is a problem solved.",
+    "years": "Year of experience",
+    "projects": "Projects completed",
     "clients": "Happy clients"
   },
   "contact": {
     "label": "Contact",
-    "heading": "Let's build something extraordinary",
-    "sub": "You have an idea — I'm ready to bring it to life.",
+    "heading": "Let's build something great",
+    "sub": "You have an idea — I'm ready to bring it to life. Reach out!",
     "telegram": "Telegram",
     "instagram": "Instagram",
-    "email": "Email"
+    "email": "Email",
+    "phone": "Phone"
   },
   "footer": {
     "copy": "Ferudin. All rights reserved."
   },
   "lang": {
-    "uz": "O'zbek",
-    "ru": "Русский",
-    "en": "English"
+    "uz": "O'z",
+    "ru": "Ru",
+    "en": "En"
   }
 }

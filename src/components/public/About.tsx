@@ -64,9 +64,9 @@ export default function About() {
                 style={{ borderColor: 'var(--b)' }}
               >
                 {[
-                  { n: '6+', l: t('years') },
-                  { n: '48+', l: t('projects') },
-                  { n: '30+', l: t('clients') },
+                  { n: '1', l: t('years') },
+                  { n: '3+', l: t('projects') },
+                  { n: '5+', l: t('clients') },
                 ].map((s, i) => (
                   <div
                     key={s.l}

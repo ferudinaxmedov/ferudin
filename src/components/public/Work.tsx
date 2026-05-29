@@ -4,36 +4,37 @@ import { useTranslations } from 'next-intl';
 
 const projects = [
   {
-    title: 'Lumière',
-    category: 'E-Commerce · Luxury Fashion',
-    desc: 'Full e-commerce redesign & development',
-    gradient: 'linear-gradient(135deg, #141428 0%, #1e2a4a 60%, #0f3460 100%)',
-    span: 'col-span-1 lg:col-span-2',
-    aspect: 'aspect-[16/9]',
+    title: 'DentaFlow',
+    url: 'https://dentaflow.uz',
+    category: 'CRM · Stomatologiya',
+    desc: 'Stomatologiya klinikalari uchun CRM tizim',
+    gradient: 'linear-gradient(135deg, #0a1628 0%, #0d2a4a 50%, #0a3d6b 100%)',
+    accent: '#0ea5e9',
+    span: 'col-span-1 md:col-span-2',
+    aspect: 'aspect-video',
+    label: 'dentaflow.uz',
   },
   {
-    title: 'Meridian',
-    category: 'SaaS · Analytics',
-    desc: 'Dashboard design & React development',
-    gradient: 'linear-gradient(135deg, #1a0f28 0%, #2d1b4e 100%)',
+    title: 'HamidaStom',
+    url: 'https://hamidastom.uz',
+    category: 'Web Sayt · Tibbiyot',
+    desc: 'Stomatologiya klinikasi web sayt',
+    gradient: 'linear-gradient(135deg, #0d1f12 0%, #0f3320 100%)',
+    accent: '#22c55e',
     span: 'col-span-1',
     aspect: 'aspect-square',
+    label: 'hamidastom.uz',
   },
   {
-    title: 'Solara',
-    category: 'Branding · Beauty',
-    desc: 'Brand identity & website design',
-    gradient: 'linear-gradient(135deg, #0a2010 0%, #1a5c38 100%)',
+    title: 'Loyiha №3',
+    url: '#contact',
+    category: 'Web Dizayn · Landing',
+    desc: 'Korporativ landing page dizayn',
+    gradient: 'linear-gradient(135deg, #1a0f28 0%, #2d1b4e 100%)',
+    accent: '#a855f7',
     span: 'col-span-1',
-    aspect: 'aspect-[4/3]',
-  },
-  {
-    title: 'Arcane',
-    category: 'Portfolio · Creative',
-    desc: 'Portfolio site & brand direction',
-    gradient: 'linear-gradient(135deg, #241408 0%, #5c3d1e 100%)',
-    span: 'col-span-1',
-    aspect: 'aspect-[4/3]',
+    aspect: 'aspect-square',
+    label: 'coming soon',
   },
 ];
 
@@ -42,10 +43,10 @@ export default function Work() {
 
   return (
     <section id="work" className="py-28 px-6 relative">
-      {/* Section bg glow */}
+      {/* Section top line */}
       <div
-        className="pointer-events-none absolute top-0 left-0 right-0 h-px opacity-40"
-        style={{ background: 'linear-gradient(90deg, transparent, var(--g), transparent)' }}
+        className="pointer-events-none absolute top-0 left-0 right-0 h-px"
+        style={{ background: 'linear-gradient(90deg, transparent, rgba(34,197,94,0.25), transparent)' }}
         aria-hidden
       />
 
@@ -64,7 +65,7 @@ export default function Work() {
           </div>
           <a
             href="#contact"
-            className="reveal d2 flex items-center gap-2 px-5 py-2.5 border rounded-full text-sm font-semibold text-white/60 hover:text-[var(--g)] hover:border-[var(--g-border)] transition-all duration-200"
+            className="reveal d2 flex items-center gap-2 px-5 py-2.5 border rounded-full text-sm font-semibold text-white/50 hover:text-[var(--g)] hover:border-[var(--g-border)] transition-all duration-200"
             style={{ borderColor: 'var(--b)' }}
           >
             {t('view_all')}
@@ -74,14 +75,15 @@ export default function Work() {
           </a>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {projects.map((p, i) => (
-            <div
+            <a
               key={p.title}
-              className={`reveal d${Math.min(i + 1, 4)} group relative rounded-2xl overflow-hidden cursor-pointer ${p.span} ${p.aspect}`}
+              href={p.url}
+              target={p.url.startsWith('http') ? '_blank' : undefined}
+              rel="noopener noreferrer"
+              className={`reveal d${i + 1} group relative rounded-2xl overflow-hidden cursor-pointer ${p.span} ${p.aspect}`}
               style={{ background: p.gradient }}
-              tabIndex={0}
-              role="button"
               aria-label={`${p.title} — ${p.category}`}
             >
               {/* Texture */}
@@ -89,44 +91,65 @@ export default function Work() {
                 className="absolute inset-0 opacity-10"
                 style={{
                   backgroundImage:
-                    'repeating-linear-gradient(45deg, transparent, transparent 18px, rgba(255,255,255,0.03) 18px, rgba(255,255,255,0.03) 19px)',
+                    'repeating-linear-gradient(45deg,transparent,transparent 16px,rgba(255,255,255,0.025) 16px,rgba(255,255,255,0.025) 17px)',
                 }}
                 aria-hidden
               />
 
-              {/* Zoom bg */}
+              {/* Zoom */}
               <div
-                className="absolute inset-0 transition-transform duration-700 group-hover:scale-[1.04]"
+                className="absolute inset-0 transition-transform duration-700 group-hover:scale-[1.05]"
                 style={{ background: p.gradient }}
                 aria-hidden
               />
 
+              {/* Accent glow on hover */}
+              <div
+                className="pointer-events-none absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                style={{ background: `radial-gradient(ellipse at center, ${p.accent}18 0%, transparent 70%)` }}
+                aria-hidden
+              />
+
+              {/* URL badge */}
+              <div className="absolute top-4 left-4">
+                <span
+                  className="px-3 py-1.5 rounded-full text-[10px] font-bold tracking-widest uppercase border"
+                  style={{
+                    borderColor: `${p.accent}40`,
+                    background: `${p.accent}15`,
+                    color: p.accent,
+                  }}
+                >
+                  {p.label}
+                </span>
+              </div>
+
               {/* Overlay */}
               <div
-                className="absolute inset-0 transition-all duration-300"
-                style={{
-                  background:
-                    'linear-gradient(to top, rgba(8,8,8,0.9) 0%, rgba(8,8,8,0.1) 60%, transparent 100%)',
-                }}
+                className="absolute inset-0"
+                style={{ background: 'linear-gradient(to top, rgba(8,8,8,0.92) 0%, rgba(8,8,8,0.05) 55%, transparent 100%)' }}
               >
                 <div className="absolute bottom-0 left-0 right-0 p-5">
-                  <p className="text-[var(--g)] text-[10px] font-semibold tracking-[0.13em] uppercase mb-1.5">
+                  <p
+                    className="text-[10px] font-semibold tracking-[0.13em] uppercase mb-2"
+                    style={{ color: p.accent }}
+                  >
                     {p.category}
                   </p>
-                  <h3 className="text-white font-bold text-lg leading-tight mb-1">{p.title}</h3>
+                  <h3 className="text-white font-black text-xl leading-tight mb-1">{p.title}</h3>
                   <p className="text-white/40 text-xs">{p.desc}</p>
                 </div>
               </div>
 
               {/* Arrow */}
               <div
-                className="absolute top-4 right-4 w-8 h-8 rounded-full border border-white/20 flex items-center justify-center text-white opacity-0 scale-75 group-hover:opacity-100 group-hover:scale-100 transition-all duration-250"
+                className="absolute top-4 right-4 w-8 h-8 rounded-full border border-white/15 flex items-center justify-center text-white opacity-0 scale-75 group-hover:opacity-100 group-hover:scale-100 transition-all duration-250"
               >
                 <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
                   <path d="M2 6h8M6.5 2.5l4 3.5-4 3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
               </div>
-            </div>
+            </a>
           ))}
         </div>
       </div>

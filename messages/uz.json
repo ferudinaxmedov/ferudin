@@ -9,51 +9,54 @@
   "hero": {
     "role": "Web Designer & Developer",
     "greeting": "Salom, men",
-    "tagline": "Digital tajribalar yarataman",
-    "sub": "Ferudin — boutique web dizayn va dasturlash studiyasi. Oddiy bo'lishdan bosh tortgan brandlar uchun elegant, yuqori unumli saytlar quraman.",
+    "tagline": "Raqamli tajribalar yarataman",
+    "sub": "Zamonaviy web saytlar, CRM tizimlar va UI/UX dizayn — g'oyangizni ishlaydigan mahsulotga aylantiraman.",
     "cta_work": "Ishlarimni ko'rish",
-    "cta_contact": "Bog'lanish"
+    "cta_contact": "Bog'lanish",
+    "badge_exp": "1 yillik tajriba",
+    "badge_vibe": "Vibe Coding"
   },
   "tools": "Ishlatadigan texnologiyalar",
   "services": {
     "label": "Xizmatlar",
     "heading": "Nima qilaman",
-    "web_design": "Web Dizayn",
-    "web_design_desc": "Foydalanuvchilarni befarq qoldirmaydigan interfeyslar.",
-    "web_dev": "Web Dasturlash",
-    "web_dev_desc": "Tez, zamonaviy va kengayadigan kod.",
-    "branding": "Brending",
-    "branding_desc": "Hamma joyda ishlaydi digan vizual sistema.",
-    "ui_ux": "UI/UX",
-    "ui_ux_desc": "Foydalanuvchi tajribasini birinchi o'ringa qo'yaman."
+    "s1_title": "Web Dizayn",
+    "s1_desc": "Foydalanuvchini jalb qiladigan, brendingizni aks ettiruvchi zamonaviy interfeys va landing pagelar.",
+    "s2_title": "CRM Tizim Qurish",
+    "s2_desc": "Biznesingiz uchun maxsus yaratilgan mijozlar boshqaruv tizimlari — avtomatlashtirish va nazorat.",
+    "s3_title": "Web Dasturlash",
+    "s3_desc": "Tez, ishonchli va kengayadigan web ilovalar. Next.js, React va zamonaviy stack.",
+    "s4_title": "UI/UX Dizayn",
+    "s4_desc": "Foydalanuvchi yo'lini o'ylab, har bir ekranni maqsadli va qulay qilib loyihalash."
   },
   "work": {
     "label": "Loyihalar",
     "heading": "Tanlangan ishlar",
-    "view_all": "Barchasini ko'rish"
+    "view_all": "Hammasi"
   },
   "about": {
     "label": "Men haqimda",
     "heading": "Kim men?",
-    "bio": "Men Ferudin — web dizayner va dasturchi. Har bir piksel maqsadga yo'naltirilgan, har bir o'zaro ta'sir o'ylangan bo'lishi kerak deb ishonaman. Oddiy narsalardan ajoyib narsalar yaratamanlar qatoridaman.",
+    "bio": "Men Ferudin — web dizayner va dasturchi. Vibe coding mening yo'lim: g'oyani tezda prototipga, prototipni real mahsulotga aylantirib beraman. Har bir loyiha — bu muammo yechimi.",
     "years": "Yil tajriba",
-    "projects": "Loyiha",
-    "clients": "Mijoz"
+    "projects": "Tugallangan loyiha",
+    "clients": "Mamnun mijoz"
   },
   "contact": {
     "label": "Aloqa",
     "heading": "Keling, biror ajoyib narsa quramiz",
-    "sub": "Sizning g'oyangiz bor — men uni hayotga tatbiq etishga tayyorman.",
+    "sub": "G'oyangiz bor — men uni hayotga tatbiq etishga tayyorman. Yozing!",
     "telegram": "Telegram",
     "instagram": "Instagram",
-    "email": "Email"
+    "email": "Email",
+    "phone": "Telefon"
   },
   "footer": {
     "copy": "Ferudin. Barcha huquqlar himoyalangan."
   },
   "lang": {
-    "uz": "O'zbek",
-    "ru": "Русский",
-    "en": "English"
+    "uz": "O'z",
+    "ru": "Ru",
+    "en": "En"
   }
 }
