@@ -18,17 +18,6 @@ export default function Work() {
       label: 'dentaflow.uz',
     },
     {
-      title: 'HamidaStom',
-      url: 'https://hamidastom.uz',
-      category: t('hamidastom_cat'),
-      desc: t('hamidastom_desc'),
-      gradient: 'linear-gradient(135deg, #0d1f12 0%, #0f3320 100%)',
-      accent: '#22c55e',
-      span: 'col-span-1',
-      aspect: 'aspect-square',
-      label: 'hamidastom.uz',
-    },
-    {
       title: t('p3_title'),
       url: '#contact',
       category: t('p3_cat'),
