@@ -41,6 +41,72 @@ const nav = [
     ],
   },
   {
+    group: 'Oila',
+    items: [
+      {
+        href: '/workspace/family',
+        label: 'Dashboard',
+        exact: true,
+        icon: (
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M9 22V12h6v10" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        ),
+      },
+      {
+        href: '/workspace/family/hisob',
+        label: 'Hisob',
+        icon: (
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none">
+            <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
+          </svg>
+        ),
+      },
+      {
+        href: '/workspace/family/vazifalar',
+        label: 'Vazifalar',
+        icon: (
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none">
+            <path d="M9 11l3 3L22 4" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        ),
+      },
+      {
+        href: '/workspace/family/xotira',
+        label: 'Xotira',
+        icon: (
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none">
+            <path d="M12 2a7 7 0 0 1 7 7c0 2.38-1.19 4.47-3 5.74V17a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1v-2.26A7 7 0 0 1 12 2z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" />
+            <path d="M9 21h6" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
+            <path d="M10 17v1M14 17v1" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
+          </svg>
+        ),
+      },
+      {
+        href: '/workspace/family/namoz',
+        label: 'Namoz',
+        icon: (
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        ),
+      },
+      {
+        href: '/workspace/family/mehmonlar',
+        label: 'Mehmonlar',
+        icon: (
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
+            <circle cx="9" cy="7" r="4" stroke="currentColor" strokeWidth="1.7" />
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
+          </svg>
+        ),
+      },
+    ],
+  },
+  {
     group: 'DentaFlow',
     items: [
       {
