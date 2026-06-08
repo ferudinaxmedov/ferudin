@@ -19,10 +19,15 @@ export default async function HisobPage() {
 
   const txAll = txRes.data ?? [];
   let balUsd = 0, balUzs = 0;
+  let initUsd = 0, initUzs = 0;
   for (const r of txAll) {
     const sign = r.type === 'KIRIM' ? 1 : -1;
     balUsd += sign * (r.amount_usd ?? 0);
     balUzs += sign * (r.amount_uzs ?? 0);
+    if (r.note === '__init__') {
+      initUsd = r.amount_usd ?? 0;
+      initUzs = r.amount_uzs ?? 0;
+    }
   }
 
   const cats = catRes.data ?? [];
@@ -37,6 +42,8 @@ export default async function HisobPage() {
       balUzs={Math.round(balUzs)}
       chiqimCats={chiqimCats}
       kirimCats={kirimCats}
+      initUsd={initUsd}
+      initUzs={initUzs}
     />
   );
 }

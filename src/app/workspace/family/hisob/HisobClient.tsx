@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { addTransaction, deleteTransaction, editTransaction, addQarz, closeQarz } from './actions';
+import { addTransaction, deleteTransaction, editTransaction, addQarz, closeQarz, setInitialBalance } from './actions';
 
 type Tx = {
   id: string; type: string; date: string; owner: string; category: string;
@@ -20,6 +20,8 @@ type Props = {
   balUzs: number;
   chiqimCats: string[];
   kirimCats: string[];
+  initUsd: number;
+  initUzs: number;
 };
 
 const OWNERS = ['FERUDIN', 'GULOYIM'];
@@ -133,10 +135,11 @@ function TxForm({
   );
 }
 
-export function HisobClient({ transactions, qarzlar, balUsd, balUzs, chiqimCats, kirimCats }: Props) {
+export function HisobClient({ transactions, qarzlar, balUsd, balUzs, chiqimCats, kirimCats, initUsd, initUzs }: Props) {
   const [tab, setTab] = useState<'tx' | 'qarz'>('tx');
   const [txModal, setTxModal] = useState(false);
   const [qarzModal, setQarzModal] = useState(false);
+  const [initModal, setInitModal] = useState(false);
   const [editTx, setEditTx] = useState<Tx | null>(null);
   const [txType, setTxType] = useState<'CHIQIM' | 'KIRIM'>('CHIQIM');
   const [editTxType, setEditTxType] = useState<'CHIQIM' | 'KIRIM'>('CHIQIM');
@@ -144,9 +147,10 @@ export function HisobClient({ transactions, qarzlar, balUsd, balUzs, chiqimCats,
 
   const cats = txType === 'CHIQIM' ? chiqimCats : kirimCats;
   const editCats = editTxType === 'CHIQIM' ? chiqimCats : kirimCats;
+  const visibleTx = transactions.filter(tx => tx.note !== '__init__');
   const filteredTx = filter
-    ? transactions.filter(tx => tx.category.toLowerCase().includes(filter.toLowerCase()) || tx.owner.toLowerCase().includes(filter.toLowerCase()) || (tx.note ?? '').toLowerCase().includes(filter.toLowerCase()))
-    : transactions;
+    ? visibleTx.filter(tx => tx.category.toLowerCase().includes(filter.toLowerCase()) || tx.owner.toLowerCase().includes(filter.toLowerCase()) || (tx.note ?? '').toLowerCase().includes(filter.toLowerCase()))
+    : visibleTx;
   const activeQarz = qarzlar.filter(q => q.status === 'AKTIV');
   const closedQarz = qarzlar.filter(q => q.status === 'TUGADI');
 
@@ -170,7 +174,7 @@ export function HisobClient({ transactions, qarzlar, balUsd, balUzs, chiqimCats,
       </div>
 
       {/* Balance */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '24px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '8px' }}>
         <div style={s.card}>
           <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 8px 0' }}>Balans USD</p>
           <p style={{ color: balUsd >= 0 ? '#22c55e' : '#ef4444', fontWeight: 700, fontSize: '24px', margin: 0 }}>{balUsd >= 0 ? '+' : ''}{balUsd.toFixed(2)} $</p>
@@ -181,8 +185,22 @@ export function HisobClient({ transactions, qarzlar, balUsd, balUzs, chiqimCats,
         </div>
         <div style={s.card}>
           <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 8px 0' }}>Jami yozuvlar</p>
-          <p style={{ color: '#fff', fontWeight: 700, fontSize: '24px', margin: 0 }}>{transactions.length}</p>
+          <p style={{ color: '#fff', fontWeight: 700, fontSize: '24px', margin: 0 }}>{visibleTx.length}</p>
         </div>
+      </div>
+
+      {/* Initial balance hint */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '24px', padding: '10px 14px', background: 'rgba(255,255,255,0.03)', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.05)' }}>
+        <span style={{ color: 'rgba(255,255,255,0.25)', fontSize: '12px', flex: 1 }}>
+          Boshlang&apos;ich balans:{' '}
+          {(initUsd || initUzs)
+            ? <span style={{ color: 'rgba(255,255,255,0.5)' }}>{initUsd ? `${initUsd} $` : ''}{initUsd && initUzs ? ' · ' : ''}{initUzs ? `${fmtUzs(initUzs)} so'm` : ''}</span>
+            : <span style={{ color: 'rgba(239,68,68,0.5)' }}>belgilanmagan</span>
+          }
+        </span>
+        <button onClick={() => setInitModal(true)} style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.5)', fontSize: '11px', borderRadius: '6px', padding: '5px 10px', cursor: 'pointer', whiteSpace: 'nowrap' }}>
+          {(initUsd || initUzs) ? 'O\'zgartirish' : 'Belgilash'}
+        </button>
       </div>
 
       {/* Tabs */}
@@ -332,6 +350,26 @@ export function HisobClient({ transactions, qarzlar, balUsd, balUzs, chiqimCats,
             defaultValues={editTx}
             onSubmit={async (fd) => { await editTransaction(editTx.id, fd); setEditTx(null); }}
           />
+        </Modal>
+      )}
+
+      {/* Initial Balance Modal */}
+      {initModal && (
+        <Modal title="Boshlang'ich balans belgilash" onClose={() => setInitModal(false)}>
+          <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: '12px', margin: '0 0 18px 0', lineHeight: 1.6 }}>
+            Google Sheets yoki boshqa joydan ko&apos;chirib o&apos;tgan balansni kiriting. Bu summa tranzaksiyalar tarixida ko&apos;rinmaydi, faqat balans hisobiga qo&apos;shiladi.
+          </p>
+          <form action={async (fd) => { await setInitialBalance(fd); setInitModal(false); }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+              <Field label="Boshlang'ich USD"><input name="amount_usd" type="number" step="0.01" placeholder="0.00" defaultValue={initUsd || ''} style={s.input} /></Field>
+              <Field label="Boshlang'ich UZS"><input name="amount_uzs" type="number" placeholder="0" defaultValue={initUzs || ''} style={s.input} /></Field>
+            </div>
+            <p style={{ color: 'rgba(255,255,255,0.2)', fontSize: '11px', margin: '4px 0 20px 0' }}>0 kiritilsa boshlang&apos;ich balans o&apos;chiriladi</p>
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button type="button" onClick={() => setInitModal(false)} style={{ ...s.btnSecondary, flex: 1 }}>Bekor</button>
+              <button type="submit" style={{ ...s.btnPrimary, flex: 1 }}>Saqlash</button>
+            </div>
+          </form>
         </Modal>
       )}
 

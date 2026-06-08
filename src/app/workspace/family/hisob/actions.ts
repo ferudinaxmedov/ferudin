@@ -58,6 +58,30 @@ export async function closeQarz(id: string) {
   revalidatePath('/workspace/family/hisob');
 }
 
+export async function setInitialBalance(formData: FormData) {
+  const sb = createServiceClient();
+  const amtUsd = formData.get('amount_usd') as string;
+  const amtUzs = formData.get('amount_uzs') as string;
+
+  await sb.from('family_transactions').delete().eq('note', '__init__');
+
+  if ((amtUsd && parseFloat(amtUsd) !== 0) || (amtUzs && parseFloat(amtUzs) !== 0)) {
+    await sb.from('family_transactions').insert({
+      type: 'KIRIM',
+      date: '2000-01-01',
+      owner: 'FERUDIN',
+      category: "Boshlang'ich balans",
+      payment_method: 'NAQD',
+      amount_usd: amtUsd ? parseFloat(amtUsd) : null,
+      amount_uzs: amtUzs ? parseFloat(amtUzs) : null,
+      note: '__init__',
+    });
+  }
+
+  revalidatePath('/workspace/family/hisob');
+  revalidatePath('/workspace/family');
+}
+
 export async function editTransaction(id: string, formData: FormData) {
   const sb = createServiceClient();
   const amtUsd = formData.get('amount_usd') as string;
