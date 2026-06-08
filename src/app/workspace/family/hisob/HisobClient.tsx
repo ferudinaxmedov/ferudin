@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { addTransaction, deleteTransaction, addQarz, closeQarz } from './actions';
+import { addTransaction, deleteTransaction, editTransaction, addQarz, closeQarz } from './actions';
 
 type Tx = {
   id: string; type: string; date: string; owner: string; category: string;
@@ -24,6 +24,7 @@ type Props = {
 
 const OWNERS = ['FERUDIN', 'GULOYIM'];
 const PAYMENTS = ['NAQD', 'KARTA', 'KARTA2'];
+
 function fmtUzs(n: number) {
   if (Math.abs(n) >= 1_000_000) return (n / 1_000_000).toFixed(1) + 'M';
   return new Intl.NumberFormat('uz-UZ').format(Math.round(n));
@@ -52,7 +53,7 @@ const s = {
   btnPrimary: { background: '#22c55e', color: '#000', fontWeight: 600, fontSize: '13px', border: 'none', borderRadius: '8px', padding: '9px 16px', cursor: 'pointer' },
   btnSecondary: { background: 'transparent', border: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.6)', fontSize: '13px', borderRadius: '8px', padding: '9px 16px', cursor: 'pointer' },
   overlay: { position: 'fixed' as const, inset: 0, background: 'rgba(0,0,0,0.75)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center' },
-  modal: { background: '#141414', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '20px', padding: '28px', width: '420px', maxWidth: '90vw' },
+  modal: { background: '#141414', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '20px', padding: '28px', width: '420px', maxWidth: '90vw', maxHeight: '85vh', overflowY: 'auto' as const },
 };
 
 function Modal({ title, onClose, children }: { title: string; onClose: () => void; children: React.ReactNode }) {
@@ -73,14 +74,76 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   return <div style={{ marginBottom: '14px' }}><label style={s.label}>{label}</label>{children}</div>;
 }
 
+function TxForm({
+  txType, setTxType, cats, onSubmit, defaultValues, today,
+}: {
+  txType: 'CHIQIM' | 'KIRIM';
+  setTxType: (t: 'CHIQIM' | 'KIRIM') => void;
+  cats: string[];
+  onSubmit: (fd: FormData) => Promise<void>;
+  defaultValues?: Tx;
+  today: string;
+}) {
+  const allCats = txType === 'KIRIM'
+    ? cats
+    : cats;
+
+  return (
+    <form action={async (fd) => { await onSubmit(fd); }}>
+      <Field label="Tur">
+        <div style={{ display: 'flex', gap: '8px' }}>
+          {(['CHIQIM', 'KIRIM'] as const).map(t => (
+            <button key={t} type="button" onClick={() => setTxType(t)} style={{
+              flex: 1, padding: '9px', borderRadius: '8px', border: '1px solid',
+              borderColor: txType === t ? (t === 'KIRIM' ? '#22c55e' : '#ef4444') : 'rgba(255,255,255,0.08)',
+              background: txType === t ? (t === 'KIRIM' ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.1)') : 'transparent',
+              color: txType === t ? '#fff' : 'rgba(255,255,255,0.4)', cursor: 'pointer', fontSize: '13px', fontWeight: 600,
+            }}>{t}</button>
+          ))}
+        </div>
+        <input type="hidden" name="type" value={txType} />
+      </Field>
+      <Field label="Kategoriya">
+        <select name="category" required defaultValue={defaultValues?.category} style={{ ...s.input, appearance: 'none' }}>
+          {allCats.map(c => <option key={c} value={c}>{c}</option>)}
+        </select>
+      </Field>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+        <Field label="Egasi">
+          <select name="owner" required defaultValue={defaultValues?.owner} style={{ ...s.input, appearance: 'none' }}>
+            {OWNERS.map(o => <option key={o} value={o}>{o}</option>)}
+          </select>
+        </Field>
+        <Field label="To'lov usuli">
+          <select name="payment_method" required defaultValue={defaultValues?.payment_method} style={{ ...s.input, appearance: 'none' }}>
+            {PAYMENTS.map(p => <option key={p} value={p}>{p}</option>)}
+          </select>
+        </Field>
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+        <Field label="Summa USD"><input name="amount_usd" type="number" step="0.01" placeholder="0.00" defaultValue={defaultValues?.amount_usd ?? ''} style={s.input} /></Field>
+        <Field label="Summa UZS"><input name="amount_uzs" type="number" placeholder="0" defaultValue={defaultValues?.amount_uzs ?? ''} style={s.input} /></Field>
+      </div>
+      <Field label="Sana"><input name="date" type="date" defaultValue={defaultValues?.date ?? today} required style={s.input} /></Field>
+      <Field label="Izoh"><input name="note" type="text" placeholder="Ixtiyoriy..." defaultValue={defaultValues?.note ?? ''} style={s.input} /></Field>
+      <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
+        <button type="submit" style={{ ...s.btnPrimary, flex: 1 }}>Saqlash</button>
+      </div>
+    </form>
+  );
+}
+
 export function HisobClient({ transactions, qarzlar, balUsd, balUzs, chiqimCats, kirimCats }: Props) {
   const [tab, setTab] = useState<'tx' | 'qarz'>('tx');
   const [txModal, setTxModal] = useState(false);
   const [qarzModal, setQarzModal] = useState(false);
+  const [editTx, setEditTx] = useState<Tx | null>(null);
   const [txType, setTxType] = useState<'CHIQIM' | 'KIRIM'>('CHIQIM');
+  const [editTxType, setEditTxType] = useState<'CHIQIM' | 'KIRIM'>('CHIQIM');
   const [filter, setFilter] = useState('');
 
   const cats = txType === 'CHIQIM' ? chiqimCats : kirimCats;
+  const editCats = editTxType === 'CHIQIM' ? chiqimCats : kirimCats;
   const filteredTx = filter
     ? transactions.filter(tx => tx.category.toLowerCase().includes(filter.toLowerCase()) || tx.owner.toLowerCase().includes(filter.toLowerCase()) || (tx.note ?? '').toLowerCase().includes(filter.toLowerCase()))
     : transactions;
@@ -88,6 +151,11 @@ export function HisobClient({ transactions, qarzlar, balUsd, balUzs, chiqimCats,
   const closedQarz = qarzlar.filter(q => q.status === 'TUGADI');
 
   const today = new Date().toISOString().split('T')[0];
+
+  function openEdit(tx: Tx) {
+    setEditTx(tx);
+    setEditTxType(tx.type as 'CHIQIM' | 'KIRIM');
+  }
 
   return (
     <div style={{ padding: '32px', maxWidth: '960px' }}>
@@ -101,7 +169,7 @@ export function HisobClient({ transactions, qarzlar, balUsd, balUzs, chiqimCats,
         </button>
       </div>
 
-      {/* Balance row */}
+      {/* Balance */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '24px' }}>
         <div style={s.card}>
           <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 8px 0' }}>Balans USD</p>
@@ -129,7 +197,7 @@ export function HisobClient({ transactions, qarzlar, balUsd, balUzs, chiqimCats,
         ))}
       </div>
 
-      {/* Transactions tab */}
+      {/* Transactions */}
       {tab === 'tx' && (
         <div style={s.card}>
           <div style={{ marginBottom: '16px' }}>
@@ -147,8 +215,7 @@ export function HisobClient({ transactions, qarzlar, balUsd, balUzs, chiqimCats,
           ) : (
             <div>
               {filteredTx.map(tx => (
-                <div key={tx.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 0', borderBottom: '1px solid rgba(255,255,255,0.04)' }}
-                  className="tx-row">
+                <div key={tx.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 0', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
                   <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
                     <div style={{
                       width: '36px', height: '36px', borderRadius: '10px', flexShrink: 0,
@@ -157,7 +224,7 @@ export function HisobClient({ transactions, qarzlar, balUsd, balUzs, chiqimCats,
                     }}>
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
                         {tx.type === 'KIRIM'
-                          ? <path d="M12 19V5M5 12l7-7 7 7" stroke={tx.type === 'KIRIM' ? '#22c55e' : '#ef4444'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                          ? <path d="M12 19V5M5 12l7-7 7 7" stroke="#22c55e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                           : <path d="M12 5v14M5 12l7 7 7-7" stroke="#ef4444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                         }
                       </svg>
@@ -170,12 +237,19 @@ export function HisobClient({ transactions, qarzlar, balUsd, balUzs, chiqimCats,
                       </p>
                     </div>
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                    <span style={{ color: tx.type === 'KIRIM' ? '#22c55e' : '#ef4444', fontWeight: 600, fontSize: '14px' }}>{txAmt(tx)}</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ color: tx.type === 'KIRIM' ? '#22c55e' : '#ef4444', fontWeight: 600, fontSize: '14px', marginRight: '8px' }}>{txAmt(tx)}</span>
+                    <button type="button" onClick={() => openEdit(tx)} title="Tahrirlash"
+                      style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.2)', cursor: 'pointer', padding: '4px', borderRadius: '4px' }}>
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    </button>
                     <form action={async () => { await deleteTransaction(tx.id); }}>
-                      <button type="submit" style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.15)', cursor: 'pointer', padding: '4px', borderRadius: '4px' }}
-                        title="O'chirish">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                      <button type="submit" title="O'chirish"
+                        style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.15)', cursor: 'pointer', padding: '4px', borderRadius: '4px' }}>
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
                           <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
                         </svg>
                       </button>
@@ -237,48 +311,27 @@ export function HisobClient({ transactions, qarzlar, balUsd, balUzs, chiqimCats,
       {/* Add Transaction Modal */}
       {txModal && (
         <Modal title="Yangi tranzaksiya" onClose={() => setTxModal(false)}>
-          <form action={async (fd) => { await addTransaction(fd); setTxModal(false); }}>
-            <Field label="Tur">
-              <div style={{ display: 'flex', gap: '8px' }}>
-                {['CHIQIM', 'KIRIM'].map(t => (
-                  <button key={t} type="button" onClick={() => setTxType(t as 'CHIQIM' | 'KIRIM')} style={{
-                    flex: 1, padding: '9px', borderRadius: '8px', border: '1px solid',
-                    borderColor: txType === t ? (t === 'KIRIM' ? '#22c55e' : '#ef4444') : 'rgba(255,255,255,0.08)',
-                    background: txType === t ? (t === 'KIRIM' ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.1)') : 'transparent',
-                    color: txType === t ? '#fff' : 'rgba(255,255,255,0.4)', cursor: 'pointer', fontSize: '13px', fontWeight: 600,
-                  }}>{t}</button>
-                ))}
-              </div>
-              <input type="hidden" name="type" value={txType} />
-            </Field>
-            <Field label="Kategoriya">
-              <select name="category" required style={{ ...s.input, appearance: 'none' }}>
-                {cats.map(c => <option key={c} value={c}>{c}</option>)}
-              </select>
-            </Field>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-              <Field label="Egasi">
-                <select name="owner" required style={{ ...s.input, appearance: 'none' }}>
-                  {OWNERS.map(o => <option key={o} value={o}>{o}</option>)}
-                </select>
-              </Field>
-              <Field label="To'lov usuli">
-                <select name="payment_method" required style={{ ...s.input, appearance: 'none' }}>
-                  {PAYMENTS.map(p => <option key={p} value={p}>{p}</option>)}
-                </select>
-              </Field>
-            </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-              <Field label="Summa USD"><input name="amount_usd" type="number" step="0.01" placeholder="0.00" style={s.input} /></Field>
-              <Field label="Summa UZS"><input name="amount_uzs" type="number" placeholder="0" style={s.input} /></Field>
-            </div>
-            <Field label="Sana"><input name="date" type="date" defaultValue={today} required style={s.input} /></Field>
-            <Field label="Izoh"><input name="note" type="text" placeholder="Ixtiyoriy..." style={s.input} /></Field>
-            <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
-              <button type="button" onClick={() => setTxModal(false)} style={{ ...s.btnSecondary, flex: 1 }}>Bekor</button>
-              <button type="submit" style={{ ...s.btnPrimary, flex: 1 }}>Saqlash</button>
-            </div>
-          </form>
+          <TxForm
+            txType={txType}
+            setTxType={setTxType}
+            cats={cats}
+            today={today}
+            onSubmit={async (fd) => { await addTransaction(fd); setTxModal(false); }}
+          />
+        </Modal>
+      )}
+
+      {/* Edit Transaction Modal */}
+      {editTx && (
+        <Modal title="Tranzaksiyani tahrirlash" onClose={() => setEditTx(null)}>
+          <TxForm
+            txType={editTxType}
+            setTxType={setEditTxType}
+            cats={editCats}
+            today={today}
+            defaultValues={editTx}
+            onSubmit={async (fd) => { await editTransaction(editTx.id, fd); setEditTx(null); }}
+          />
         </Modal>
       )}
 

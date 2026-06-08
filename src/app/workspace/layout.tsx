@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import Link from 'next/link';
 import { logoutAction } from './login/actions';
 import { WorkspaceNav } from './WorkspaceNav';
+import { FloatingBar } from './FloatingBar';
 import '../globals.css';
 
 export default function WorkspaceLayout({ children }: { children: ReactNode }) {
@@ -78,7 +79,8 @@ export default function WorkspaceLayout({ children }: { children: ReactNode }) {
           </aside>
 
           {/* Main content */}
-          <main style={{ flex: 1, overflowY: 'auto', minHeight: '100vh' }}>
+          <main style={{ flex: 1, overflowY: 'auto', minHeight: '100vh', position: 'relative' }}>
+            <FloatingBar />
             {children}
           </main>
         </div>

@@ -29,15 +29,6 @@ const nav = [
           </svg>
         ),
       },
-      {
-        href: '/workspace/accounting',
-        label: 'Accounting',
-        icon: (
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none">
-            <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
-          </svg>
-        ),
-      },
     ],
   },
   {

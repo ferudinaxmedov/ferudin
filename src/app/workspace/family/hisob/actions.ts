@@ -57,3 +57,23 @@ export async function closeQarz(id: string) {
   await sb.from('family_qarz').update({ status: 'TUGADI', returned_date: today }).eq('id', id);
   revalidatePath('/workspace/family/hisob');
 }
+
+export async function editTransaction(id: string, formData: FormData) {
+  const sb = createServiceClient();
+  const amtUsd = formData.get('amount_usd') as string;
+  const amtUzs = formData.get('amount_uzs') as string;
+
+  await sb.from('family_transactions').update({
+    type: formData.get('type') as string,
+    date: formData.get('date') as string,
+    owner: formData.get('owner') as string,
+    category: formData.get('category') as string,
+    payment_method: formData.get('payment_method') as string,
+    amount_usd: amtUsd ? parseFloat(amtUsd) : null,
+    amount_uzs: amtUzs ? parseFloat(amtUzs) : null,
+    note: (formData.get('note') as string) || null,
+  }).eq('id', id);
+
+  revalidatePath('/workspace/family/hisob');
+  revalidatePath('/workspace/family');
+}
