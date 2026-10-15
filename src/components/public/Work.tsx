@@ -22,13 +22,13 @@ const Tile = ({ src, alt }: { src: string; alt: string }) => (
 function DentaVisual() {
   const bars = [38, 62, 48, 80, 58, 92, 70];
   return (
-    <div className="absolute inset-x-5 top-5 bottom-0 md:inset-x-8 md:top-8 grid grid-cols-5 gap-3 items-start" aria-hidden>
+    <div className="absolute inset-x-5 md:inset-x-8 top-1/2 -translate-y-1/2 grid grid-cols-5 gap-3 md:gap-4 items-start" aria-hidden>
       <div className="glass col-span-3 rounded-2xl p-4 flex flex-col gap-2.5">
         <div className="flex gap-1.5 mb-1">
           {[0, 1, 2].map(i => <span key={i} className="w-2 h-2 rounded-full bg-white/25" />)}
         </div>
         {['09:00', '10:30', '12:00', '14:15', '15:40', '17:00'].map((time, i) => (
-          <div key={time} className="flex items-center gap-3 rounded-xl bg-white/[0.06] px-3 py-2">
+          <div key={time} className="flex items-center gap-3 rounded-xl bg-white/[0.06] px-3 py-3.5">
             <span className="text-[11px] font-bold text-sky-300 tabular-nums">{time}</span>
             <span className="h-2 rounded-full bg-white/20" style={{ width: `${64 - i * 9}%` }} />
             <span className="ml-auto w-2 h-2 rounded-full" style={{ background: ['#4ade80', '#38bdf8', '#fbbf24', '#4ade80', '#38bdf8', '#4ade80'][i] }} />
@@ -43,7 +43,7 @@ function DentaVisual() {
             ))}
           </div>
         </div>
-        <div className="glass rounded-2xl p-3.5 flex items-end gap-1.5 h-[120px]">
+        <div className="glass rounded-2xl p-3.5 flex items-end gap-1.5 h-[150px]">
           {bars.map((h, i) => (
             <span key={i} className="flex-1 rounded-md" style={{ height: `${h}%`, background: 'linear-gradient(to top, #0ea5e9, #7dd3fc)' }} />
           ))}

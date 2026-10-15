@@ -73,12 +73,12 @@ export default function Hero() {
           <div className="absolute inset-[9%] morph glass glass-strong overflow-hidden floaty" style={{ animationDuration: '9s' }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="/ferudin-profile.jpg"
+              src="/ferudin-portrait.webp"
               alt="Ferudin Ahmedov"
               width={600}
               height={600}
               className="absolute inset-0 w-full h-full object-cover"
-              style={{ transform: 'scale(1.55)', transformOrigin: '72% 64%', objectPosition: '72% 64%' }}
+              style={{ objectPosition: '50% 30%' }}
             />
             <div
               aria-hidden

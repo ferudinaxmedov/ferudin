@@ -16,12 +16,12 @@ export default function About() {
             <div className="relative aspect-[4/5] overflow-hidden rounded-[22px]">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src="/ferudin-about.jpg"
+                src="/ferudin-portrait.webp"
                 alt="Ferudin Ahmedov"
                 width={800}
                 height={1000}
                 loading="lazy"
-                className="absolute inset-0 w-full h-full object-cover object-top"
+                className="absolute inset-0 w-full h-full object-cover object-[50%_20%]"
               />
               <div aria-hidden className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(5,6,12,0.6), transparent 45%)' }} />
               <span className="glass absolute left-3 bottom-3 inline-flex items-center gap-2 rounded-full px-3.5 py-2 text-xs font-bold">
