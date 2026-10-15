@@ -2,109 +2,51 @@
 
 import { useTranslations } from 'next-intl';
 
-const services = [
-  {
-    key: 's1',
-    icon: (
-      <svg viewBox="0 0 40 40" fill="none" stroke="currentColor" strokeWidth="1.4" aria-hidden="true">
-        <rect x="4" y="6" width="32" height="22" rx="2.5" />
-        <path d="M13 34h14M20 28v6" strokeLinecap="round" />
-        <circle cx="11" cy="12" r="2" />
-        <path d="M16 17l3.5-3.5 5 5 3-3" strokeLinecap="round" strokeLinejoin="round" />
-      </svg>
-    ),
-  },
-  {
-    key: 's2',
-    icon: (
-      <svg viewBox="0 0 40 40" fill="none" stroke="currentColor" strokeWidth="1.4" aria-hidden="true">
-        <rect x="4" y="8" width="32" height="26" rx="2.5" />
-        <path d="M4 16h32" />
-        <path d="M13 24h14M13 29h9" strokeLinecap="round" />
-        <circle cx="10" cy="12" r="1.5" fill="currentColor" stroke="none" />
-        <circle cx="15" cy="12" r="1.5" fill="currentColor" stroke="none" />
-        <circle cx="20" cy="12" r="1.5" fill="currentColor" stroke="none" />
-      </svg>
-    ),
-  },
-  {
-    key: 's3',
-    icon: (
-      <svg viewBox="0 0 40 40" fill="none" stroke="currentColor" strokeWidth="1.4" aria-hidden="true">
-        <path d="M14 14l-6 6 6 6M26 14l6 6-6 6" strokeLinecap="round" strokeLinejoin="round" />
-        <path d="M22 10l-4 20" strokeLinecap="round" />
-      </svg>
-    ),
-  },
-  {
-    key: 's4',
-    icon: (
-      <svg viewBox="0 0 40 40" fill="none" stroke="currentColor" strokeWidth="1.4" aria-hidden="true">
-        <rect x="6" y="10" width="28" height="20" rx="3" />
-        <circle cx="20" cy="20" r="5" />
-        <path d="M20 15v2M20 23v2M15 20h2M23 20h2" strokeLinecap="round" />
-      </svg>
-    ),
-  },
+const icons = [
+  // Design
+  <path key="a" d="M12 3l2.4 5.2L20 9l-4 4 1 5.6-5-2.8-5 2.8L8 13 4 9l5.6-.8L12 3z" />,
+  // CRM
+  <g key="b"><rect x="3" y="4" width="18" height="16" rx="3" /><path d="M3 9h18M8 14h3M8 17h6" /></g>,
+  // Code
+  <path key="c" d="M8 8l-5 4 5 4M16 8l5 4-5 4M14 5l-4 14" />,
+  // UI/UX
+  <g key="d"><circle cx="9" cy="9" r="5" /><circle cx="15" cy="15" r="5" /></g>,
 ];
+const accents = ['#6ee7b7', '#60a5fa', '#c4b5fd', '#f9a8d4'];
 
 export default function Services() {
   const t = useTranslations('services');
+  const items = [1, 2, 3, 4].map(n => ({ title: t(`s${n}_title`), desc: t(`s${n}_desc`) }));
 
   return (
-    <section id="services" className="py-28 px-6">
+    <section id="services" className="relative py-24 md:py-32 px-5 scroll-mt-10">
       <div className="max-w-6xl mx-auto">
-        <div className="mb-14">
-          <p className="reveal text-[var(--g)] text-xs font-semibold tracking-[0.14em] uppercase mb-3">
-            {t('label')}
-          </p>
-          <h2
-            className="reveal d1 font-black text-white leading-tight"
-            style={{ fontSize: 'clamp(2rem, 5vw, 3.5rem)' }}
-          >
+        <div className="mb-12 max-w-xl">
+          <p className="reveal eyebrow mb-3">{t('label')}</p>
+          <h2 className="reveal d1 font-extrabold tracking-tight leading-[1.05] mb-4" style={{ fontSize: 'clamp(2.2rem, 5vw, 3.6rem)' }}>
             {t('heading')}
           </h2>
+          <p className="reveal d2 text-[var(--ink-2)] text-lg">{t('sub')}</p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {services.map((svc, i) => (
-            <div
-              key={svc.key}
-              className={`reveal d${i + 1} group relative rounded-2xl border p-6 overflow-hidden transition-all duration-300 hover:-translate-y-1.5 hover:border-[var(--g-border)] cursor-default`}
-              style={{ borderColor: 'var(--b)', background: 'var(--surface)' }}
-            >
-              {/* Hover glow */}
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {items.map((s, i) => (
+            <div key={s.title} className={`reveal d${i + 1}`}>
               <div
-                className="pointer-events-none absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-400 rounded-2xl"
-                style={{ background: 'radial-gradient(ellipse at top left, rgba(34,197,94,0.08) 0%, transparent 65%)' }}
-                aria-hidden
-              />
-
-              {/* Top accent line */}
-              <div
-                className="absolute top-0 left-0 right-0 h-[2px] rounded-t-2xl scale-x-0 group-hover:scale-x-100 transition-transform duration-350 origin-left"
-                style={{ background: 'linear-gradient(90deg, var(--g), transparent)' }}
-                aria-hidden
-              />
-
-              {/* Number */}
-              <span
-                className="absolute top-4 right-5 font-black text-5xl leading-none select-none"
-                style={{ color: 'rgba(255,255,255,0.03)' }}
-                aria-hidden
+                className="glass spot tilt rounded-3xl p-6 h-full min-h-[240px] flex flex-col"
+                style={{ ['--spot' as string]: `${accents[i]}30`, ['--spot-strong' as string]: accents[i] }}
               >
-                0{i + 1}
-              </span>
-
-              {/* Icon */}
-              <div className="w-10 h-10 mb-5 text-[var(--g)]">{svc.icon}</div>
-
-              <h3 className="font-bold text-white text-base mb-2">
-                {t(`${svc.key}_title` as 's1_title' | 's2_title' | 's3_title' | 's4_title')}
-              </h3>
-              <p className="text-[var(--text-sub)] text-sm leading-relaxed">
-                {t(`${svc.key}_desc` as 's1_desc' | 's2_desc' | 's3_desc' | 's4_desc')}
-              </p>
+                <div
+                  className="relative z-[1] w-12 h-12 rounded-2xl flex items-center justify-center mb-6 border border-white/15"
+                  style={{ background: `linear-gradient(145deg, ${accents[i]}38, ${accents[i]}10)`, color: accents[i] }}
+                >
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                    {icons[i]}
+                  </svg>
+                </div>
+                <h3 className="relative z-[1] text-xl font-bold mb-2">{s.title}</h3>
+                <p className="relative z-[1] text-[15px] leading-relaxed text-[var(--ink-2)]">{s.desc}</p>
+              </div>
             </div>
           ))}
         </div>

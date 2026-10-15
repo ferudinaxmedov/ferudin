@@ -10,7 +10,7 @@ export function proxy(request: NextRequest) {
   const host = request.headers.get('host') ?? 'ferudin.uz';
 
   // Redirect HTTP → HTTPS
-  if (proto.split(',')[0].trim() === 'http') {
+  if (process.env.NODE_ENV === 'production' && proto.split(',')[0].trim() === 'http') {
     const httpsUrl = `https://${host}${pathname}${request.nextUrl.search}`;
     return NextResponse.redirect(httpsUrl, { status: 308 });
   }

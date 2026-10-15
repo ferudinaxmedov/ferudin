@@ -5,19 +5,27 @@ import Work from '@/components/public/Work';
 import About from '@/components/public/About';
 import Contact from '@/components/public/Contact';
 import Footer from '@/components/public/Footer';
-import RevealObserver from '@/components/public/RevealObserver';
+import Effects from '@/components/public/Effects';
 
 export default function Home() {
   return (
-    <main className="noise-bg">
-      <RevealObserver />
-      <Nav />
-      <Hero />
-      <Services />
-      <Work />
-      <About />
-      <Contact />
-      <Footer />
-    </main>
+    <>
+      <div className="aurora" aria-hidden>
+        <i />
+        <i />
+        <i />
+        <i />
+      </div>
+      <Effects />
+      <main className="relative z-10">
+        <Nav />
+        <Hero />
+        <Work />
+        <Services />
+        <About />
+        <Contact />
+        <Footer />
+      </main>
+    </>
   );
 }
