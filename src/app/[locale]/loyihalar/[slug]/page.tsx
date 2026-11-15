@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ArrowRight, ArrowUpRight, Send } from 'lucide-react';
@@ -100,6 +101,29 @@ export default async function ProjectPage({ params }: { params: Params }) {
             <Pairs pairs={p.pairs} cols />
           </div>
         </section>
+
+        {p.crm && p.screens && (
+          <section className="sec" style={{ paddingTop: 0 }}>
+            <div className="wrap">
+              <div className="sec-head">
+                <span className="eyebrow rv">{t.insideEyebrow}</span>
+                <h2 className="h2 rv">{t.insideH2}</h2>
+              </div>
+              <div className="inside">
+                {p.crm.map((f, i) => (
+                  <figure key={f} className="rv">
+                    <div className="browser">
+                      <div className="browser-bar" aria-hidden><i /><i /><i /><span>{p.crmUrl}</span></div>
+                      <Image src={`/work/crm/${f}.webp`} alt={p.screens![i]} width={1568} height={727} sizes="(min-width: 1240px) 1160px, 94vw" />
+                    </div>
+                    <figcaption>{p.screens![i]}</figcaption>
+                  </figure>
+                ))}
+              </div>
+              {p.slug !== 'dentaflow' && <p className="small" style={{ marginTop: 16 }}>{t.insideNote}</p>}
+            </div>
+          </section>
+        )}
 
         {p.shot2 && p.shot2Label && (
           <section className="sec" style={{ paddingTop: 0 }}>

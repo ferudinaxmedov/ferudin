@@ -271,6 +271,9 @@ export const uz = {
     },
   },
   proj: {
+    insideEyebrow: "Tizim ichidan",
+    insideH2: "Egasi har kuni ko'radigan ekranlar",
+    insideNote: "Mijozlarning ism va telefon raqamlari xiralashtirilgan.",
     crumb: "Loyihalar",
     fProject: "Loyiha",
     fKind: "Turi",
@@ -297,6 +300,7 @@ export const uz = {
       summary: "Koreya kosmetikasi brendining O'zbekistondagi rasmiy do'koni. Savdo Telegram chatlaridan onlayn do'kon va bitta boshqaruv ekraniga ko'chdi.",
       problem: "Savdo butunlay Telegram chatlarida yurardi. Har bir mijoz administrator javobini kutardi, 3 500 ta chatdagi mijozlar, telefon raqamlari va xaridlar esa hech qayerda yig'ilmagan edi. Eski mijozga qayta chiqishning iloji yo'q edi.",
       shot2Label: "firstcosmetics.uz: shu tizimdagi ikkinchi brend va ilova",
+      screens: ["Mijozlar bazasi: 3 347 mijoz, kim sotib olgani va kimga qayta chiqish kerakligi bir ekranda", "Mahsulotlar: narx, qoldiq va sotuvdagi holat shu yerdan boshqariladi"],
       wins: [
         { n: "3 500", l: "Telegram chat o'qib chiqildi va tartibga solindi" },
         { n: "3 300+", l: "mijozga endi qayta aloqaga chiqish mumkin: Telegram akkaunti bazada" },
@@ -325,6 +329,7 @@ export const uz = {
       result: "Klinika tartibda: navbat, bemor kartasi, to'lov va eslatmalar bitta joyda",
       summary: "O'zim asos solgan mahsulot. Klinikalar oylik obuna bilan ishlatadi, har bir rol o'z panelida ishlaydi.",
       problem: "Ko'p klinikada navbat daftarda, bemor tarixi qog'ozda, qarzlar esa xotirada turadi. Bemor qabulni unutadi va kreslo bo'sh qoladi.",
+      screens: ["Bosh sahifa: bugungi navbatlar, tushum va e'tibor talab qiladigan ishlar (test klinika)", "Bemor kartasi: tish xaritasi, tashriflar va to'lovlar (test bemor)"],
       wins: [
         { n: "3 til", l: "o'zbek, rus, ingliz: har bir xodim o'z tilida ishlaydi" },
         { n: "5", l: "rol uchun alohida panel: admin, shifokor, registrator, kassir, bemor" },
@@ -350,6 +355,7 @@ export const uz = {
       result: "O'quv markaz noldan tizimlashtirildi: hammasi egasining qo'lida va nazoratida",
       summary: "TOPIK va IELTS o'quv markazi hamda Koreyada o'qish bo'yicha konsalting firmasi. Sayt, xodimlar tizimi va o'quvchi kabineti bitta bazada ishlaydi.",
       problem: "Markaz ikki yo'nalishda ishlaydi: o'quv kurslari va konsalting. O'quvchilar, konsalting mijozlari, davomat va natijalar uchun yagona tizim yo'q edi, hammasini noldan qurish kerak edi.",
+      screens: ["Mock testlar: IELTS va TOPIK sinov imtihonlari, guruhlar haqiqiy imtihon ekranida topshiradi"],
       wins: [
         { n: "2", l: "yo'nalish bitta tizimda: o'quv markaz va konsalting firma" },
         { n: "4 til", l: "sayt o'zbek, rus, ingliz va koreys tilida" },

@@ -472,3 +472,9 @@ html { scroll-behavior: smooth; scroll-padding-top: 84px; -webkit-text-size-adju
 .lk-a.main > svg { color: #fff; }
 .lk-a.main:hover { box-shadow: 5px 5px 0 var(--ink); }
 .lk-foot { margin-top: 10px; font-family: var(--mono); font-size: 12px; color: var(--ink3); text-align: center; }
+
+/* 6-bosqich: tizim ichidan ekranlar */
+.inside { display: flex; flex-direction: column; gap: 40px; }
+.inside figure { margin: 0; display: flex; flex-direction: column; gap: 14px; }
+.inside .browser { box-shadow: 0 40px 70px -46px rgba(13, 20, 17, 0.5); }
+.inside figcaption { font-size: 15.5px; color: var(--ink2); max-width: 70ch; padding-left: 16px; border-left: 2px solid var(--blue); }

@@ -23,11 +23,11 @@ const STEPS = [
 ] as const;
 
 const PROJECTS = [
-  { slug: 'seedbee', own: false, url: 'https://seedbee.uz', urlLabel: 'seedbee.uz', shot: 'seedbee', shot2: 'firstcosmetics', tone: '#3B63F6',
+  { slug: 'seedbee', own: false, url: 'https://seedbee.uz', urlLabel: 'seedbee.uz', shot: 'seedbee', shot2: 'firstcosmetics', tone: '#3B63F6', crm: ['seedbee-customers', 'seedbee-products'], crmUrl: 'crm.firstcosmetics.uz',
     stack: ['Next.js', 'Supabase', 'Vercel', 'Click', 'Payme', 'Eskiz SMS', 'Telegram Bot API', 'Claude AI', 'Expo / React Native'] },
-  { slug: 'dentaflow', own: true, url: 'https://dentaflow.uz', urlLabel: 'dentaflow.uz', shot: 'dentaflow', tone: '#C8472B',
+  { slug: 'dentaflow', own: true, url: 'https://dentaflow.uz', urlLabel: 'dentaflow.uz', shot: 'dentaflow', tone: '#C8472B', crm: ['dentaflow-dashboard', 'dentaflow-patient'], crmUrl: 'dentaflow.uz/admin',
     stack: ['Next.js', 'Supabase', 'Vercel', 'Click', 'Payme', 'Eskiz SMS', 'Telegram Bot API', 'Gemini Live', 'Claude AI'] },
-  { slug: 'skyplus', own: false, url: 'https://skyplus.uz', urlLabel: 'skyplus.uz', shot: 'skyplus', tone: '#2F6BFF',
+  { slug: 'skyplus', own: false, url: 'https://skyplus.uz', urlLabel: 'skyplus.uz', shot: 'skyplus', tone: '#2F6BFF', crm: ['skyplus-mocks'], crmUrl: 'crm.skyplus.uz',
     stack: ['Next.js', 'Supabase', 'Vercel', 'next-intl'] },
   { slug: 'hongsam', own: true, url: 'https://hongsam.uz', urlLabel: 'hongsam.uz', shot: 'hongsam', tone: '#A3261F',
     stack: ['Next.js', 'Vercel', 'Telegram Bot API', 'Mini App'] },
@@ -55,9 +55,9 @@ const STAT_SUFFIX = ['', '', '+', ''];
 export type Step = { id: StepId; price: string; from: boolean; bar: number; name: string; result: string; time: string; note?: string; pairs: Pair[] };
 
 export type Project = {
-  slug: Slug; own: boolean; url?: string; urlLabel?: string; shot?: string; shot2?: string; tone: string; stack: readonly string[];
+  slug: Slug; own: boolean; url?: string; urlLabel?: string; shot?: string; shot2?: string; crm?: readonly string[]; crmUrl?: string; tone: string; stack: readonly string[];
   name: string; kind: string; role: string; result: string; summary: string; problem: string; shot2Label?: string;
-  wins: { n: string; l: string }[]; pairs: Pair[]; similar: { label: string; price: string }[]; chat?: Chat;
+  wins: { n: string; l: string }[]; pairs: Pair[]; similar: { label: string; price: string }[]; chat?: Chat; screens?: string[];
 };
 
 const TEXTS: Record<string, Texts> = { uz, ru, en };

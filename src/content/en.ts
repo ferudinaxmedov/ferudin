@@ -271,6 +271,9 @@ export const en: Texts = {
     },
   },
   proj: {
+    insideEyebrow: "Inside the system",
+    insideH2: "The screens the owner sees every day",
+    insideNote: "Customer names and phone numbers are blurred.",
     crumb: "Projects",
     fProject: "Project",
     fKind: "Type",
@@ -297,6 +300,7 @@ export const en: Texts = {
       summary: "The official store of a Korean cosmetics brand in Uzbekistan. Sales moved from Telegram chats to an online store and one management screen.",
       problem: "All sales ran in Telegram chats. Every customer waited for an administrator's reply, and the customers, phone numbers and purchases in 3 500 chats were not collected anywhere. Reaching a past customer again was impossible.",
       shot2Label: "firstcosmetics.uz: a second brand and app on the same system",
+      screens: ["Customer database: 3 347 customers, who bought and who needs a follow-up, on one screen", "Products: price, stock and sale status are managed here"],
       wins: [
         { n: "3 500", l: "Telegram chats read and put in order" },
         { n: "3 300+", l: "customers who can now be contacted again: their Telegram is in the database" },
@@ -325,6 +329,7 @@ export const en: Texts = {
       result: "A clinic in order: appointments, patient records, payments and reminders in one place",
       summary: "A product I founded. Clinics use it on a monthly subscription, and each role works in its own panel.",
       problem: "In many clinics appointments live in a notebook, patient history on paper and debts in someone's memory. Patients forget their visit and the chair stays empty.",
+      screens: ["Dashboard: today's appointments, revenue and items that need attention (test clinic)", "Patient record: tooth chart, visits and payments (test patient)"],
       wins: [
         { n: "3 languages", l: "Uzbek, Russian, English: each staff member works in their own" },
         { n: "5", l: "roles with their own panel: admin, doctor, receptionist, cashier, patient" },
@@ -350,6 +355,7 @@ export const en: Texts = {
       result: "A learning centre systemised from scratch: everything in the owner's hands",
       summary: "A TOPIK and IELTS learning centre and a consulting firm for studying in Korea. The site, the staff system and the student cabinet run on one database.",
       problem: "The centre works in two directions: courses and consulting. There was no single system for students, consulting clients, attendance and results, so everything had to be built from scratch.",
+      screens: ["Mock tests: IELTS and TOPIK exams, groups take them on a real exam screen"],
       wins: [
         { n: "2", l: "directions in one system: learning centre and consulting firm" },
         { n: "4 languages", l: "site in Uzbek, Russian, English and Korean" },
