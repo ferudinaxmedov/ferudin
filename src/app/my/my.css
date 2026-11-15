@@ -139,6 +139,10 @@ body.hub {
 .chip.ok { background: rgba(52, 211, 153, 0.12); color: #6ee7b7; }
 .chip.warn { background: rgba(251, 191, 36, 0.12); color: #fcd34d; }
 .chip.bad { background: rgba(248, 113, 113, 0.13); color: #fca5a5; }
+
+/* change vs previous period */
+.up { color: #6ee7b7; }
+.down { color: #fca5a5; }
 .chip.info { background: rgba(96, 165, 250, 0.13); color: #93c5fd; }
 .signal { display: flex; gap: 12px; padding: 10px 0; border-top: 1px solid var(--line); }
 .signal:first-child { border-top: 0; padding-top: 2px; }

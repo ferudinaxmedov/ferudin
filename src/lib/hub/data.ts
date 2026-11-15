@@ -42,18 +42,71 @@ export function monthlySom(s: Sub, usdRate: number): number | null {
   return s.period === 'year' ? som / 12 : som;
 }
 
-export async function getDentaflow(): Promise<Fetched<DentaflowStats>> {
-  const token = process.env.DENTAFLOW_HUB_TOKEN;
-  if (!token) return { ok: false, reason: "DENTAFLOW_HUB_TOKEN o'rnatilmagan" };
-  const url = process.env.DENTAFLOW_STATS_URL ?? 'https://dentaflow.uz/api/hub/stats';
+type Keyed = { key: string; orders: number; revenue: number };
+
+/** Shape of SeedBee's /api/hub/stats (seedbee.uz). Sums in so'm; no customer names or phones. */
+export type SeedbeeStats = {
+  generatedAt: string;
+  orders: { today: number; week: number; month: number; toProcess: number; unpaid: number; byStatus: Record<string, number> };
+  revenue: { today: number; week: number; month: number; trend: { key: string; revenue: number; orders: number }[] };
+  last30: {
+    totals: { orders: number; revenue: number; paid_orders: number; cancelled: number; new_customers: number; repeat_rate: number; customers_total: number };
+    prev: { orders: number; revenue: number; paid_orders: number; new_customers: number };
+    daily: { day: string; orders: number; revenue: number }[];
+    bySource: Keyed[]; byMethod: Keyed[]; byRegion: Keyed[];
+    topProducts: { key: string; qty: number; revenue: number }[];
+  };
+  customers: { total: number; week: number };
+  cashback: {
+    liability: { available: number; pending: number; customers: number };
+    period: { earned: number; pending: number; voided: number; spent: number; reserved: number; adjust_plus: number; adjust_minus: number };
+  };
+};
+
+type Pair = { UZS: number; USD: number };
+type Month = { key: string; in: Pair; out: Pair; inUzs: number; outUzs: number };
+
+/** Shape of SkyPlus CRM's /api/hub/stats (crm.skyplus.uz). */
+export type SkyplusStats = {
+  generatedAt: string;
+  fx: { usdUzs: number; day: string | null };
+  money: { month: Month; prev: Month; trend: Month[]; bySpace: Record<string, Pair & { uzs: number }> };
+  debts: Pair & { count: number; uzs: number };
+  academy: {
+    students: number; newThisMonth: number;
+    groups: Record<string, number>; enrollments: Record<string, number>;
+    attendance30d: { marked: number; present: number; pct: number | null };
+  };
+  leads: { total: number; open: number; newThisMonth: number; byStatus: Record<string, number>; bySource: Record<string, number> };
+  consulting: { openCases: number; byStage: Record<string, number>; byProgram: Record<string, number> };
+  health: { notifyPending: number; notifyFailed: number; fxDay: string | null };
+};
+
+/** Every project exposes the same read-only Bearer endpoint; the hub pulls it fresh on each view. */
+async function fetchStats<T>(name: string, tokenEnv: string, url: string): Promise<Fetched<T>> {
+  const token = process.env[tokenEnv];
+  if (!token) return { ok: false, reason: `${tokenEnv} o'rnatilmagan` };
   try {
     const res = await fetch(url, { headers: { authorization: `Bearer ${token}` }, cache: 'no-store', signal: AbortSignal.timeout(20_000) });
-    if (!res.ok) return { ok: false, reason: `DentaFlow javobi: ${res.status}` };
-    return { ok: true, data: (await res.json()) as DentaflowStats };
+    if (!res.ok) return { ok: false, reason: `${name} javobi: ${res.status}` };
+    return { ok: true, data: (await res.json()) as T };
   } catch (e) {
     return { ok: false, reason: e instanceof Error ? e.message : 'ulanib bo‘lmadi' };
   }
 }
+
+export const getDentaflow = () =>
+  fetchStats<DentaflowStats>('DentaFlow', 'DENTAFLOW_HUB_TOKEN', process.env.DENTAFLOW_STATS_URL ?? 'https://dentaflow.uz/api/hub/stats');
+export const getSeedbee = () =>
+  fetchStats<SeedbeeStats>('SeedBee', 'SEEDBEE_HUB_TOKEN', process.env.SEEDBEE_STATS_URL ?? 'https://seedbee.uz/api/hub/stats');
+export const getSkyplus = () =>
+  fetchStats<SkyplusStats>('SkyPlus', 'SKYPLUS_HUB_TOKEN', process.env.SKYPLUS_STATS_URL ?? 'https://crm.skyplus.uz/api/hub/stats');
+
+const UZ_MONTHS = ['yan', 'fev', 'mar', 'apr', 'may', 'iyun', 'iyul', 'avg', 'sen', 'okt', 'noy', 'dek'];
+/** 'YYYY-MM' → short Uzbek month name. */
+export const uzMonth = (key: string) => UZ_MONTHS[Number(key.slice(5, 7)) - 1] ?? key;
+/** Change vs previous period in %, null when there is nothing to compare with. */
+export const delta = (now: number, prev: number) => (prev > 0 ? Math.round(((now - prev) / prev) * 100) : null);
 
 export const som = (n: number) => `${Math.round(n).toLocaleString('ru-RU').replace(/ /g, ' ')} so'm`;
 export const compactSom = (n: number) =>

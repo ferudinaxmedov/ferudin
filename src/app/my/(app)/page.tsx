@@ -3,7 +3,7 @@ import {
   AlertTriangle, BadgeCheck, CalendarClock, CircleDollarSign, Cpu, Hospital, Info, ShieldAlert, TrendingUp,
 } from 'lucide-react';
 import { requireHub } from '@/lib/hub/guard';
-import { compactSom, daysUntil, getDentaflow, getSettings, getSubs, money, monthlySom, som } from '@/lib/hub/data';
+import { compactSom, daysUntil, getDentaflow, getSeedbee, getSettings, getSkyplus, getSubs, money, monthlySom, som } from '@/lib/hub/data';
 import { BUCKETS, PROJECTS, bucketOf } from '@/lib/hub/projects';
 import { CountUp } from './CountUp';
 
@@ -16,7 +16,14 @@ const ICON: Record<Tone, typeof Info> = { ok: BadgeCheck, warn: AlertTriangle, b
 
 export default async function Overview() {
   await requireHub();
-  const [subs, { usdRate }, df] = await Promise.all([getSubs(), getSettings(), getDentaflow()]);
+  const [subs, { usdRate }, df, sb, sp] = await Promise.all([getSubs(), getSettings(), getDentaflow(), getSeedbee(), getSkyplus()]);
+  const liveOk: Record<string, boolean> = { dentaflow: df.ok, seedbee: sb.ok, skyplus: sp.ok };
+  const revenue = [
+    { name: 'DentaFlow', ok: df.ok, som: df.ok ? df.data.revenue.month : 0 },
+    { name: 'SeedBee', ok: sb.ok, som: sb.ok ? sb.data.revenue.month : 0 },
+    { name: 'SkyPlus', ok: sp.ok, som: sp.ok ? sp.data.money.month.inUzs : 0 },
+  ];
+  const revenueTotal = revenue.reduce((s, r) => s + r.som, 0);
 
   const active = subs.filter((s) => s.active);
   const priced = active.filter((s) => s.amount !== null);
@@ -50,6 +57,12 @@ export default async function Overview() {
 
   const signals: Signal[] = [];
   if (!df.ok) signals.push({ tone: 'bad', title: 'DentaFlow ulanmagan', text: df.reason, href: '/my/dentaflow' });
+  if (!sb.ok) signals.push({ tone: 'bad', title: 'SeedBee ulanmagan', text: sb.reason, href: '/my/seedbee' });
+  if (!sp.ok) signals.push({ tone: 'bad', title: 'SkyPlus ulanmagan', text: sp.reason, href: '/my/skyplus' });
+  if (sb.ok && sb.data.orders.toProcess) signals.push({ tone: 'info', title: `SeedBee: ${sb.data.orders.toProcess} ta buyurtma ishlov kutmoqda`, text: sb.data.orders.unpaid ? `${sb.data.orders.unpaid} tasi hali to'lanmagan` : "CRM'da ko'rib chiqing", href: 'https://crm.firstcosmetics.uz' });
+  if (sp.ok && sp.data.health.notifyFailed) signals.push({ tone: 'warn', title: `SkyPlus: ${sp.data.health.notifyFailed} ta Telegram xabari ketmadi`, text: 'Bot yoki chat ulanishini tekshiring', href: '/my/skyplus' });
+  if (sp.ok && sp.data.debts.count) signals.push({ tone: 'info', title: `SkyPlus: ${sp.data.debts.count} ta qarzdor`, text: som(sp.data.debts.uzs), href: '/my/skyplus' });
+  if (sp.ok && sp.data.leads.open) signals.push({ tone: 'info', title: `SkyPlus: ${sp.data.leads.open} ta lid javob kutmoqda`, text: 'Tez javob = ko‘proq yozilish', href: 'https://crm.skyplus.uz' });
   if (df.ok && df.data.health) {
     const h = df.data.health;
     if (h.missingEnv.length) signals.push({ tone: 'bad', title: 'DentaFlow: kalitlar yetishmaydi', text: h.missingEnv.join(', '), href: '/my/dentaflow' });
@@ -90,9 +103,9 @@ export default async function Overview() {
             <div className="kpi-sub">{df.ok ? `DentaFlow · o'tgan oy ${compactSom(df.data.costs.total.prev)} · bugun ${compactSom(df.data.costs.total.today)}` : 'DentaFlow ulanmagan'}</div>
           </div>
           <div className="card kpi lift rise" style={{ '--glow': '#34d399', '--d': '140ms' } as React.CSSProperties}>
-            <div className="kpi-label"><TrendingUp size={15} /> DentaFlow tushumi</div>
-            <div className="kpi-value">{df.ok ? <><CountUp value={df.data.revenue.month} /><small>so&apos;m</small></> : <span className="faint">—</span>}</div>
-            <div className="kpi-sub">{df.ok ? `bu oy · MRR ${compactSom(df.data.revenue.mrr)} so'm` : '—'}</div>
+            <div className="kpi-label"><TrendingUp size={15} /> Tushum (bu oy)</div>
+            <div className="kpi-value"><CountUp value={Math.round(revenueTotal)} /><small>so&apos;m</small></div>
+            <div className="kpi-sub">{revenue.map((r) => `${r.name} ${r.ok ? compactSom(r.som) : '—'}`).join(' · ')}</div>
           </div>
           <div className="card kpi lift rise" style={{ '--glow': '#3ecfb2', '--d': '190ms' } as React.CSSProperties}>
             <div className="kpi-label"><Hospital size={15} /> Klinikalar</div>
@@ -158,7 +171,7 @@ export default async function Overview() {
                 <div className="tile-top">
                   <span className="tile-dot" />
                   <b>{p.name}</b>
-                  {p.live ? <span className={`chip ${df.ok ? 'ok' : 'bad'}`}>{df.ok ? 'jonli' : 'xato'}</span> : <span className="chip">2-faza</span>}
+                  {p.live ? <span className={`chip ${liveOk[p.key] ? 'ok' : 'bad'}`}>{liveOk[p.key] ? 'jonli' : 'xato'}</span> : <span className="chip">keyingi faza</span>}
                 </div>
                 <p>{p.what}</p>
                 {p.key === 'dentaflow' && df.ok ? (
@@ -166,6 +179,18 @@ export default async function Overview() {
                     <span><b>{df.data.clinics.paying}/{df.data.clinics.total}</b><small>to&apos;lovchi</small></span>
                     <span><b>{compactSom(df.data.revenue.mrr)}</b><small>MRR</small></span>
                     <span><b>{compactSom(dfCost)}</b><small>API</small></span>
+                  </div>
+                ) : p.key === 'seedbee' && sb.ok ? (
+                  <div className="tile-stats">
+                    <span><b>{compactSom(sb.data.revenue.month)}</b><small>bu oy</small></span>
+                    <span><b>{sb.data.orders.month}</b><small>buyurtma</small></span>
+                    <span><b>{sb.data.customers.total.toLocaleString('ru-RU')}</b><small>mijoz</small></span>
+                  </div>
+                ) : p.key === 'skyplus' && sp.ok ? (
+                  <div className="tile-stats">
+                    <span><b>{compactSom(sp.data.money.month.inUzs)}</b><small>bu oy</small></span>
+                    <span><b>{(sp.data.academy.enrollments.active ?? 0) + (sp.data.academy.enrollments.trial ?? 0)}</b><small>o&apos;quvchi</small></span>
+                    <span><b>{sp.data.consulting.openCases}</b><small>ariza</small></span>
                   </div>
                 ) : (
                   <div className="tile-stats"><span><b>{perBucket.get(p.key) ? compactSom((perBucket.get(p.key)!.subs)) : '—'}</b><small>obunalar / oy</small></span></div>
