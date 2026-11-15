@@ -113,6 +113,11 @@ export const uz = {
     hint: "Javoblaringiz tayyor xabar bo'lib ochiladi, siz faqat \"Yuborish\"ni bosasiz.",
   },
   link: {
+    stats: ["ishlab turgan tizim", "o'z biznesim", "mijoz bazada"],
+    ring: "Bizneslarni tizimlashtiraman · buyurtma · mijoz · pul · ",
+    siteKicker: "Asosiy sahifa",
+    open: "Ochish",
+    built: "Qurgan tizimlarim",
     title: "Ferudin Ahmedov: havolalar",
     tagline: "Bizneslarni tizimlashtiraman: buyurtma, mijoz va pul bir ekranda",
     badge: "Yangi loyihalarga ochiq",

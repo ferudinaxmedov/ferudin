@@ -113,6 +113,11 @@ export const en: Texts = {
     hint: "Your answers open as a ready message, you only press Send.",
   },
   link: {
+    stats: ["live systems", "own businesses", "customers in a CRM"],
+    ring: "I put businesses in order · orders · customers · money · ",
+    siteKicker: "Main site",
+    open: "Open",
+    built: "Systems I built",
     title: "Ferudin Ahmedov: links",
     tagline: "I put businesses in order: orders, customers and money on one screen",
     badge: "Open to new projects",

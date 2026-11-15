@@ -1,8 +1,9 @@
 import type { Metadata } from 'next';
 import Image from 'next/image';
-import { ArrowUpRight, BookOpen, Globe, Megaphone, Phone, Send, Tag } from 'lucide-react';
-import { getC, tgLink, TG } from '@/content/site';
+import { ArrowUpRight, BookOpen, Megaphone, Phone, Send } from 'lucide-react';
+import { getC, tgLink, TG, IG } from '@/content/site';
 import LangSwitch from '@/components/site/LangSwitch';
+import LinkFx from '@/components/site/LinkFx';
 
 type Params = Promise<{ locale: string }>;
 
@@ -12,63 +13,129 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
 }
 
 const SITE = 'https://ferudin.uz';
+const FAN = ['dentaflow-m', 'hongsam-m', 'skyplus-m'];
+const NAMES = ['SeedBee', 'DentaFlow', 'SkyPlus', 'Hongsam', 'AI Blok', 'First Cosmetics', 'Airbnb bot'];
 
 export default async function LinkPage({ params }: { params: Params }) {
   const { locale } = await params;
   const c = getC(locale);
   const base = locale === 'uz' ? SITE : `${SITE}/${locale}`;
-
-  // Tartib: avval sayt, keyin yozish, qo'ng'iroq, hamjamiyat, narxlar
-  const targets: Record<string, { href: string; icon: React.ReactNode; main?: boolean }> = {
-    site: { href: base, icon: <Globe aria-hidden />, main: true },
-    tg: { href: tgLink(c.link.hello), icon: <Send aria-hidden /> },
-    tel: { href: 'tel:+998932450625', icon: <Phone aria-hidden /> },
-    ch: { href: 'https://t.me/FERUDIN_AIBLOK', icon: <Megaphone aria-hidden /> },
-    cm: { href: 'https://community.ferudin.uz', icon: <BookOpen aria-hidden /> },
-    prices: { href: `${base}/xizmatlar`, icon: <Tag aria-hidden /> },
-  };
+  const it = Object.fromEntries(c.link.items.map(x => [x.key, x]));
+  const ext = { target: '_blank', rel: 'noopener noreferrer' } as const;
+  const ladder = c.steps.filter(s => ['bot', 'sotuv', 'tizim'].includes(s.id));
+  let n = 0;
+  const d = () => ({ ['--i' as string]: n++ });
 
   return (
     <main className="lk">
-      <div className="hero-bg" aria-hidden />
+      <LinkFx />
+      <div className="lk-sky" aria-hidden>
+        <i className="b1" /><i className="b2" /><i className="b3" />
+      </div>
+      <div className="lk-grain" aria-hidden />
+
       <div className="lk-in">
-        <div className="lk-top">
+        <div className="lk-top lk-up" style={d()}>
+          <span className="lk-badge"><i aria-hidden />{c.link.badge}</span>
           <LangSwitch locale={locale} label={c.ui.lang} />
         </div>
-        <div className="lk-ph">
-          <Image src="/ferudin-portrait.webp" alt="Ferudin Ahmedov" fill unoptimized priority />
-        </div>
-        <h1 className="lk-name">Ferudin Ahmedov</h1>
-        <p className="lk-tag">{c.link.tagline}</p>
-        <span className="lk-badge"><i aria-hidden />{c.link.badge}</span>
 
-        <nav className="lk-list" aria-label={c.link.title}>
-          {c.link.items.map((it, i) => {
-            const t = targets[it.key];
-            if (!t) return null;
-            const ext = !t.href.startsWith('tel:');
-            return (
-              <a
-                key={it.key}
-                href={t.href}
-                target={ext ? '_blank' : undefined}
-                rel={ext ? 'noopener noreferrer' : undefined}
-                className={`lk-a ${t.main ? 'main' : ''}`}
-                style={{ animationDelay: `${150 + i * 70}ms` }}
-              >
-                <span className="ic">{t.icon}</span>
-                <span>
-                  <b>{it.t}</b>
-                  <span className="d">{it.d}</span>
+        <div className="lk-me lk-up" style={d()}>
+          <svg className="lk-ring" viewBox="0 0 200 200" aria-hidden>
+            <defs><path id="lk-circle" d="M100,100 m-86,0 a86,86 0 1,1 172,0 a86,86 0 1,1 -172,0" /></defs>
+            <text><textPath href="#lk-circle" textLength="536">{c.link.ring}</textPath></text>
+          </svg>
+          <div className="lk-ph">
+            <Image src="/ferudin-portrait.webp" alt="Ferudin Ahmedov" fill unoptimized priority />
+          </div>
+        </div>
+
+        <h1 className="lk-name lk-up" style={d()}>Ferudin <span>Ahmedov</span></h1>
+        <p className="lk-tag lk-up" style={d()}>{c.link.tagline}</p>
+
+        <dl className="lk-stats lk-up" style={d()}>
+          {c.stats.slice(0, 3).map((s, i) => (
+            <div key={s.label}>
+              <dt><span data-count={s.n}>0</span>{s.suffix}</dt>
+              <dd>{c.link.stats[i]}</dd>
+            </div>
+          ))}
+        </dl>
+
+        <nav className="lk-grid" aria-label={c.link.title}>
+          <a href={base} {...ext} className="lk-t lk-site lk-up" style={d()}>
+            <span className="lk-shine" aria-hidden />
+            <span className="lk-copy">
+              <span className="lk-k">{c.link.siteKicker}</span>
+              <b>{it.site.t}</b>
+              <span className="lk-d">{it.site.d}</span>
+              <span className="lk-go">{c.link.open} <ArrowUpRight aria-hidden /></span>
+            </span>
+            <span className="lk-fan" aria-hidden>
+              {FAN.map(f => (
+                <span key={f}><Image src={`/work/shots/${f}.webp`} alt="" width={156} height={338} /></span>
+              ))}
+            </span>
+          </a>
+
+          <a href={tgLink(c.link.hello)} {...ext} className="lk-t lk-tg lk-up" style={d()}>
+            <span className="lk-ic"><Send aria-hidden /></span>
+            <b>{it.tg.t}</b>
+            <span className="lk-d">{it.tg.d}</span>
+            <ArrowUpRight className="lk-ar" aria-hidden />
+          </a>
+
+          <a href="tel:+998932450625" className="lk-t lk-up" style={d()}>
+            <span className="lk-ic"><Phone aria-hidden /></span>
+            <b>{it.tel.t}</b>
+            <span className="lk-d lk-mono">{it.tel.d}</span>
+            <ArrowUpRight className="lk-ar" aria-hidden />
+          </a>
+
+          <a href={`${base}/xizmatlar`} {...ext} className="lk-t lk-price lk-up" style={d()}>
+            <span className="lk-copy">
+              <b>{it.prices.t}</b>
+              <span className="lk-d">{it.prices.d}</span>
+            </span>
+            <span className="lk-bars" aria-hidden>
+              {ladder.map(s => (
+                <span key={s.id} style={{ ['--h' as string]: `${s.bar}%` }}>
+                  <i />
+                  <em>{s.price}</em>
                 </span>
-                <ArrowUpRight aria-hidden />
-              </a>
-            );
-          })}
+              ))}
+            </span>
+            <ArrowUpRight className="lk-ar" aria-hidden />
+          </a>
+
+          <a href="https://t.me/FERUDIN_AIBLOK" {...ext} className="lk-t lk-up" style={d()}>
+            <span className="lk-ic"><Megaphone aria-hidden /></span>
+            <b>{it.ch.t}</b>
+            <span className="lk-d">{it.ch.d}</span>
+            <ArrowUpRight className="lk-ar" aria-hidden />
+          </a>
+
+          <a href="https://community.ferudin.uz" {...ext} className="lk-t lk-up" style={d()}>
+            <span className="lk-ic"><BookOpen aria-hidden /></span>
+            <b>{it.cm.t}</b>
+            <span className="lk-d">{it.cm.d}</span>
+            <ArrowUpRight className="lk-ar" aria-hidden />
+          </a>
         </nav>
 
-        <p className="lk-foot">
-          <a href={TG} target="_blank" rel="noopener noreferrer">@ferudin_ahmedov</a> · <a href="https://instagram.com/ferudinahmedov" target="_blank" rel="noopener noreferrer">@ferudinahmedov</a>
+        <div className="lk-mq lk-up" style={d()} aria-label={c.link.built}>
+          <span className="lk-mq-k">{c.link.built}</span>
+          <div className="lk-mq-row">
+            <div>
+              {[...NAMES, ...NAMES].map((x, i) => <span key={i}>{x}</span>)}
+            </div>
+          </div>
+        </div>
+
+        <p className="lk-foot lk-up" style={d()}>
+          <a href={TG} {...ext}>@ferudin_ahmedov</a>
+          <i aria-hidden />
+          <a href={IG} {...ext}>@ferudinahmedov</a>
         </p>
       </div>
     </main>
