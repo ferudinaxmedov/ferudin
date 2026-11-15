@@ -1,9 +1,6 @@
 import type { Metadata, Viewport } from 'next';
-import { Onest, JetBrains_Mono } from 'next/font/google';
+import { onest, jb } from '@/lib/fonts';
 import './my.css';
-
-const onest = Onest({ subsets: ['latin', 'latin-ext', 'cyrillic'], variable: '--font-onest', display: 'swap' });
-const jb = JetBrains_Mono({ subsets: ['latin'], weight: ['500', '700'], variable: '--font-jb', display: 'swap' });
 
 export const metadata: Metadata = {
   title: { default: 'My · Ferudin', template: '%s · My' },
