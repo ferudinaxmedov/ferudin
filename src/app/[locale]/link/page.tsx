@@ -85,10 +85,10 @@ export default async function LinkPage({ params }: { params: Params }) {
             <ArrowUpRight className="lk-ar" aria-hidden />
           </a>
 
-          <a href="tel:+998932450625" className="lk-t lk-up" style={d()}>
-            <span className="lk-ic"><Phone aria-hidden /></span>
-            <b>{it.tel.t}</b>
-            <span className="lk-d lk-mono">{it.tel.d}</span>
+          <a href="https://t.me/FERUDIN_AIBLOK" {...ext} className="lk-t lk-ab lk-up" style={d()}>
+            <span className="lk-ic"><Megaphone aria-hidden /></span>
+            <b>{it.ch.t}</b>
+            <span className="lk-d">{it.ch.d}</span>
             <ArrowUpRight className="lk-ar" aria-hidden />
           </a>
 
@@ -108,17 +108,17 @@ export default async function LinkPage({ params }: { params: Params }) {
             <ArrowUpRight className="lk-ar" aria-hidden />
           </a>
 
-          <a href="https://t.me/FERUDIN_AIBLOK" {...ext} className="lk-t lk-up" style={d()}>
-            <span className="lk-ic"><Megaphone aria-hidden /></span>
-            <b>{it.ch.t}</b>
-            <span className="lk-d">{it.ch.d}</span>
-            <ArrowUpRight className="lk-ar" aria-hidden />
-          </a>
-
           <a href="https://community.ferudin.uz" {...ext} className="lk-t lk-up" style={d()}>
             <span className="lk-ic"><BookOpen aria-hidden /></span>
             <b>{it.cm.t}</b>
             <span className="lk-d">{it.cm.d}</span>
+            <ArrowUpRight className="lk-ar" aria-hidden />
+          </a>
+
+          <a href="tel:+998932450625" className="lk-t lk-up" style={d()}>
+            <span className="lk-ic"><Phone aria-hidden /></span>
+            <b>{it.tel.t}</b>
+            <span className="lk-d lk-mono">{it.tel.d}</span>
             <ArrowUpRight className="lk-ar" aria-hidden />
           </a>
         </nav>
