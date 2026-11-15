@@ -25,5 +25,6 @@ export async function loginAction(_: unknown, formData: FormData) {
 export async function logoutAction() {
   const jar = await cookies();
   jar.delete('ws_session');
-  redirect('/workspace/login');
+  jar.delete('hub_s'); // the workspace now shares the my.ferudin.uz session
+  redirect('/my/login');
 }

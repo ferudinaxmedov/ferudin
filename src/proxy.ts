@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import createMiddleware from 'next-intl/middleware';
 import { routing } from './i18n/routing';
+import { SESSION_COOKIE, verifyToken } from './lib/hub/session';
 
 const intlMiddleware = createMiddleware(routing);
 
@@ -32,17 +33,30 @@ export function proxy(request: NextRequest) {
     return NextResponse.redirect(`https://ferudin.uz${pathname}${request.nextUrl.search}`);
   }
 
-  // Workspace auth
-  if (pathname.startsWith('/workspace')) {
-    if (pathname === '/workspace/login') return NextResponse.next();
+  // my.ferudin.uz: owner's hub. Password + TOTP session (src/lib/hub/session.ts) guards /my and the old /workspace.
+  const prod = process.env.NODE_ENV === 'production';
+  const isHubHost = host.startsWith('my.');
+  const isHubPath = pathname === '/my' || pathname.startsWith('/my/') || pathname.startsWith('/workspace');
 
-    const session = request.cookies.get('ws_session')?.value;
-    if (session !== process.env.WORKSPACE_SESSION_TOKEN) {
-      const url = new URL('/workspace/login', request.url);
+  if (isHubHost && !isHubPath) return NextResponse.redirect(new URL('/my', request.url));
+  if (isHubPath) {
+    // In production the hub lives only on its own subdomain (cookies are host-only).
+    if (prod && !isHubHost) {
+      if (pathname.startsWith('/workspace')) return NextResponse.redirect(`https://my.ferudin.uz${pathname}`);
+      return new NextResponse('Not found', { status: 404 });
+    }
+    if (pathname === '/my/login') return NextResponse.next();
+    if (pathname === '/workspace/login') return NextResponse.redirect(new URL('/my/login', request.url));
+    if (!verifyToken(request.cookies.get(SESSION_COOKIE)?.value, 'session')) {
+      const url = new URL('/my/login', request.url);
+      url.search = '';
       url.searchParams.set('from', pathname);
       return NextResponse.redirect(url);
     }
-    return NextResponse.next();
+    const res = NextResponse.next();
+    res.headers.set('X-Robots-Tag', 'noindex, nofollow');
+    res.headers.set('Cache-Control', 'no-store');
+    return res;
   }
 
   return intlMiddleware(request);

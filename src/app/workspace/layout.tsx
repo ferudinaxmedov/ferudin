@@ -5,6 +5,9 @@ import { WorkspaceNav } from './WorkspaceNav';
 import { FloatingBar } from './FloatingBar';
 import '../globals.css';
 
+// Never prerender: these pages read private rows (passwords, money); a static build would bake them into CDN HTML.
+export const dynamic = 'force-dynamic';
+
 export default function WorkspaceLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="uz" className="dark">
