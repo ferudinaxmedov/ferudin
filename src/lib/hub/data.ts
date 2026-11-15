@@ -61,6 +61,15 @@ export type SeedbeeStats = {
     liability: { available: number; pending: number; customers: number };
     period: { earned: number; pending: number; voided: number; spent: number; reserved: number; adjust_plus: number; adjust_minus: number };
   };
+  /** Claude spend in USD, measured from 2026-11-16 (ai_usage); null if the table is unreadable. */
+  ai?: null | {
+    since: string;
+    usd: { today: number; month: number; prev: number };
+    calls: number;
+    byModel: { key: string; usd: number; calls: number }[];
+    byFeature: { key: string; usd: number; calls: number }[];
+    daily: { day: string; usd: number }[];
+  };
 };
 
 type Pair = { UZS: number; USD: number };

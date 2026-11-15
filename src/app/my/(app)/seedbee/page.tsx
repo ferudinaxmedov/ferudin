@@ -1,6 +1,6 @@
-import { Coins, MapPin, Package, PlugZap, ShoppingBag, TrendingUp, Users, Wallet } from 'lucide-react';
+import { Coins, Cpu, MapPin, Package, PlugZap, ShoppingBag, TrendingUp, Users, Wallet } from 'lucide-react';
 import { requireHub } from '@/lib/hub/guard';
-import { compactSom, delta, getSeedbee, som, uzMonth } from '@/lib/hub/data';
+import { compactSom, delta, getSeedbee, getSettings, som, uzMonth } from '@/lib/hub/data';
 import { CountUp } from '../CountUp';
 
 export const dynamic = 'force-dynamic';
@@ -10,6 +10,12 @@ const GOLD = '#F5B83D';
 const SOURCE: Record<string, string> = { website: 'Sayt', telegram: 'Telegram', instagram: 'Instagram', app: 'Ilova', manual: "Qo'lda", crm: 'CRM' };
 const METHOD: Record<string, string> = { click: 'Click', payme: 'Payme', cash: 'Naqd', card: 'Karta', transfer: "O'tkazma", cod: 'Yetkazganda' };
 const STATUS: Record<string, string> = { new: 'Yangi', paid: "To'langan", confirmed: 'Tasdiqlangan', shipped: "Yo'lda", delivered: 'Yetkazilgan', cancelled: 'Bekor' };
+const FEATURE: Record<string, string> = {
+  assistant: 'Guruhdagi AI yordamchi', drafts: 'Javob qoralamalari', chats: 'Telegram suhbat tahlili', tagging: 'Xabarlarni teglash',
+  learning: "Uslubni o'rganish", reports: 'Hisobotdagi AI tahlil', digest: 'Kunlik xulosa', weekly: 'Haftalik xulosa', learn: "Uslubni o'rganish",
+  post_insight: 'Post tahlili', translate: 'Mahsulot tarjimasi', media: 'Rasm tavsifi',
+};
+const MODEL: Record<string, string> = { 'claude-haiku-5-5': 'Haiku', 'claude-sonnet-5-5': 'Sonnet', 'claude-opus-5-5': 'Opus' };
 const PALETTE = ['#F5B83D', '#60a5fa', '#c084fc', '#34d399', '#f472b6', '#94a3b8'];
 
 function Change({ now, prev }: { now: number; prev: number }) {
@@ -20,7 +26,7 @@ function Change({ now, prev }: { now: number; prev: number }) {
 
 export default async function SeedbeePage() {
   await requireHub();
-  const sb = await getSeedbee();
+  const [sb, { usdRate }] = await Promise.all([getSeedbee(), getSettings()]);
 
   if (!sb.ok) {
     return (
@@ -39,6 +45,8 @@ export default async function SeedbeePage() {
 
   const d = sb.data;
   const t = d.last30.totals;
+  const ai = d.ai ?? null;
+  const aiMax = Math.max(1e-9, ...(ai?.byFeature ?? []).map((f) => f.usd));
   const p = d.last30.prev;
   const trendMax = Math.max(1, ...d.revenue.trend.map((x) => x.revenue));
   const daily = d.last30.daily;
@@ -164,6 +172,33 @@ export default async function SeedbeePage() {
                 ))}
                 {!d.last30.topProducts.length && <p className="empty">30 kunda sotuv yo&apos;q</p>}
               </div>
+            </div>
+            <div className="card rise" style={{ '--d': '140ms' } as React.CSSProperties}>
+              <div className="card-h">
+                <h2><Cpu size={16} /> AI (Claude) xarajati</h2>
+                <span className="chip">{ai ? `bu oy ${ai.calls} chaqiruv` : "o'lchanmayapti"}</span>
+              </div>
+              {ai ? (
+                <>
+                  <div className="list">
+                    <div className="row">
+                      <span className="row-main"><b>Bu oy</b><small>bugun {som(ai.usd.today * usdRate)} · o&apos;tgan oy {som(ai.usd.prev * usdRate)}</small></span>
+                      <span className="row-end"><b>{som(ai.usd.month * usdRate)}</b><small>${ai.usd.month.toFixed(2)}</small></span>
+                    </div>
+                  </div>
+                  {ai.byFeature.slice(0, 5).map((f, i) => (
+                    <div key={f.key} className="bar-row" title={`${f.calls} chaqiruv · $${f.usd.toFixed(3)}`}>
+                      <span>{FEATURE[f.key] ?? f.key}</span>
+                      <span className="bar-track"><span className="bar-fill" style={{ '--c': '#f472b6', '--w': `${(f.usd / aiMax) * 100}%`, '--d': `${i * 60}ms`, display: 'block' } as React.CSSProperties} /></span>
+                      <span className="mono">{compactSom(f.usd * usdRate)}</span>
+                    </div>
+                  ))}
+                  {!ai.byFeature.length && <p className="empty">Bu oy hali AI chaqirilmagan</p>}
+                  <p className="faint small" style={{ margin: '8px 0 0' }}>
+                    {ai.since} dan o&apos;lchanadi, token bo&apos;yicha hisob · {ai.byModel.map((m) => `${MODEL[m.key] ?? m.key} ${m.calls}`).join(' · ') || '—'}
+                  </p>
+                </>
+              ) : <p className="empty">SeedBee&apos;da ai_usage o&apos;qilmadi</p>}
             </div>
             <div className="card rise" style={{ '--d': '160ms' } as React.CSSProperties}>
               <div className="card-h"><h2>Buyurtmalar holati</h2><span className="chip">hammasi</span></div>

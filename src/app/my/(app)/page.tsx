@@ -30,7 +30,9 @@ export default async function Overview() {
   const missing = active.filter((s) => s.amount === null);
   const subsMonthly = priced.reduce((sum, s) => sum + (monthlySom(s, usdRate) ?? 0), 0);
   const dfCost = df.ok ? df.data.costs.total.month : 0;
-  const totalMonthly = subsMonthly + dfCost;
+  const sbAi = sb.ok && sb.data.ai ? sb.data.ai.usd.month * usdRate : 0;
+  const apiCost = dfCost + sbAi;
+  const totalMonthly = subsMonthly + apiCost;
 
   // Cost map: subscriptions by bucket + DentaFlow's measured API spend.
   const perBucket = new Map<string, { subs: number; api: number }>();
@@ -39,10 +41,11 @@ export default async function Overview() {
     b.subs += monthlySom(s, usdRate) ?? 0;
     perBucket.set(s.project, b);
   }
-  if (df.ok) {
-    const b = perBucket.get('dentaflow') ?? { subs: 0, api: 0 };
-    b.api += dfCost;
-    perBucket.set('dentaflow', b);
+  for (const [key, api] of [['dentaflow', dfCost], ['seedbee', sbAi]] as const) {
+    if (!api) continue;
+    const b = perBucket.get(key) ?? { subs: 0, api: 0 };
+    b.api += api;
+    perBucket.set(key, b);
   }
   const costRows = BUCKETS.map((b) => ({ ...b, ...(perBucket.get(b.key) ?? { subs: 0, api: 0 }) }))
     .map((b) => ({ ...b, total: b.subs + b.api }))
@@ -99,8 +102,8 @@ export default async function Overview() {
           </div>
           <div className="card kpi lift rise" style={{ '--glow': '#f472b6', '--d': '90ms' } as React.CSSProperties}>
             <div className="kpi-label"><Cpu size={15} /> API xarajati (bu oy)</div>
-            <div className="kpi-value">{df.ok ? <><CountUp value={Math.round(dfCost)} /><small>so&apos;m</small></> : <span className="faint">—</span>}</div>
-            <div className="kpi-sub">{df.ok ? `DentaFlow · o'tgan oy ${compactSom(df.data.costs.total.prev)} · bugun ${compactSom(df.data.costs.total.today)}` : 'DentaFlow ulanmagan'}</div>
+            <div className="kpi-value"><CountUp value={Math.round(apiCost)} /><small>so&apos;m</small></div>
+            <div className="kpi-sub">DentaFlow {df.ok ? compactSom(dfCost) : '—'} · SeedBee {sb.ok && sb.data.ai ? compactSom(sbAi) : '—'}</div>
           </div>
           <div className="card kpi lift rise" style={{ '--glow': '#34d399', '--d': '140ms' } as React.CSSProperties}>
             <div className="kpi-label"><TrendingUp size={15} /> Tushum (bu oy)</div>
