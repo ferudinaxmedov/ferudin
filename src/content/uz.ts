@@ -112,6 +112,20 @@ export const uz = {
     send: "Telegram'da yuborish",
     hint: "Javoblaringiz tayyor xabar bo'lib ochiladi, siz faqat \"Yuborish\"ni bosasiz.",
   },
+  link: {
+    title: "Ferudin Ahmedov: havolalar",
+    tagline: "Bizneslarni tizimlashtiraman: buyurtma, mijoz va pul bir ekranda",
+    badge: "Yangi loyihalarga ochiq",
+    items: [
+      { key: "site", t: "ferudin.uz", d: "Ishlarim, natijalar va narxlar" },
+      { key: "tg", t: "Telegram'da yozish", d: "Buyurtma, savol yoki bepul tahlil" },
+      { key: "tel", t: "Qo'ng'iroq qilish", d: "+998 93 245 06 25" },
+      { key: "ch", t: "AI Blok kanali", d: "Sun'iy intellekt biznesga nima beradi" },
+      { key: "cm", t: "AI Blok hamjamiyati", d: "Maqolalar va resurslar" },
+      { key: "prices", t: "Xizmatlar va narxlar", d: "Telegram bot $150 dan, to'liq tizim $1 800 dan" },
+    ],
+    hello: "Assalomu alaykum, Ferudin! Instagram'dagi havola orqali yozyapman.",
+  },
   steps: {
     bot: {
       name: "Telegram bot",

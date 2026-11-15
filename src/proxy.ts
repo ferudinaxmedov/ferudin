@@ -15,6 +15,23 @@ export function proxy(request: NextRequest) {
     return NextResponse.redirect(httpsUrl, { status: 308 });
   }
 
+  // link.ferudin.uz: Instagram profili uchun havolalar sahifasi
+  if (host.startsWith('link.')) {
+    const seg = pathname.split('/')[1] ?? '';
+    const isLocale = routing.locales.includes(seg as 'uz' | 'ru' | 'en');
+    if (pathname === '/' || (isLocale && pathname === `/${seg}`)) {
+      const cookie = request.cookies.get('NEXT_LOCALE')?.value;
+      const accept = (request.headers.get('accept-language') ?? '').slice(0, 2).toLowerCase();
+      const guess = routing.locales.includes(cookie as 'uz' | 'ru' | 'en')
+        ? cookie
+        : routing.locales.includes(accept as 'uz' | 'ru' | 'en') ? accept : 'uz';
+      const locale = isLocale ? seg : guess;
+      return NextResponse.rewrite(new URL(`/${locale}/link`, request.url));
+    }
+    // Boshqa har qanday yo'l asosiy saytga
+    return NextResponse.redirect(`https://ferudin.uz${pathname}${request.nextUrl.search}`);
+  }
+
   // Workspace auth
   if (pathname.startsWith('/workspace')) {
     if (pathname === '/workspace/login') return NextResponse.next();

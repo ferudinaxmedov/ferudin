@@ -112,6 +112,20 @@ export const en: Texts = {
     send: "Send on Telegram",
     hint: "Your answers open as a ready message, you only press Send.",
   },
+  link: {
+    title: "Ferudin Ahmedov: links",
+    tagline: "I put businesses in order: orders, customers and money on one screen",
+    badge: "Open to new projects",
+    items: [
+      { key: "site", t: "ferudin.uz", d: "My work, results and prices" },
+      { key: "tg", t: "Message on Telegram", d: "An order, a question or a free review" },
+      { key: "tel", t: "Call me", d: "+998 93 245 06 25" },
+      { key: "ch", t: "AI Blok channel", d: "What AI gives a business" },
+      { key: "cm", t: "AI Blok community", d: "Articles and resources" },
+      { key: "prices", t: "Services and prices", d: "Telegram bot from $150, full system from $1 800" },
+    ],
+    hello: "Hello Ferudin! I'm writing from the link on your Instagram.",
+  },
   steps: {
     bot: {
       name: "Telegram bot",
