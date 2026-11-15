@@ -113,7 +113,7 @@ export const en: Texts = {
     hint: "Your answers open as a ready message, you only press Send.",
   },
   link: {
-    stats: ["live systems", "own businesses", "customers in a CRM"],
+    stats: ["live systems", "own businesses", "CRM customers"],
     ring: "I put businesses in order · orders · customers · money · ",
     siteKicker: "Main site",
     open: "Open",

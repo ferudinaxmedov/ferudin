@@ -113,7 +113,7 @@ export const uz = {
     hint: "Javoblaringiz tayyor xabar bo'lib ochiladi, siz faqat \"Yuborish\"ni bosasiz.",
   },
   link: {
-    stats: ["ishlab turgan tizim", "o'z biznesim", "mijoz bazada"],
+    stats: ["jonli tizim", "o'z biznesim", "mijoz bazada"],
     ring: "Bizneslarni tizimlashtiraman · buyurtma · mijoz · pul · ",
     siteKicker: "Asosiy sahifa",
     open: "Ochish",
