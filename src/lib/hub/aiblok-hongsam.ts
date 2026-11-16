@@ -1,5 +1,6 @@
 import { createServiceClient } from '@/lib/supabase';
 import type { Fetched } from './data';
+import { usdOf } from './claude-cost';
 
 // AI Blok jadvallari hub bilan bitta (DentaFlow) bazada turibdi: to'g'ridan-to'g'ri o'qiymiz, faqat yig'ma raqamlar.
 // Supabase Pro'ga ko'chganda bu fayl AI Blok'ning o'z /api/hub/stats manziliga almashtiriladi.
@@ -112,14 +113,6 @@ export async function getAiblok(): Promise<Fetched<AiblokStats>> {
   }
 }
 
-/** Claude prices per 1M tokens (USD); cache write = 1.25× input. Unknown model → Opus price (safe side). */
-const PRICES: Record<string, { in: number; out: number; read: number }> = {
-  haiku: { in: 0.1, out: 0.5, read: 0.01 },
-  sonnet: { in: 2, out: 10, read: 0.1 },
-  opus: { in: 4, out: 20, read: 0.2 },
-};
-const priceOf = (model: string) => PRICES[Object.keys(PRICES).find((k) => model.includes(k)) ?? 'opus'];
-
 type Ev = { kind: string; amount: number | null; meta: Record<string, string | number | boolean>; at: string };
 
 export type HongsamStats = {
@@ -175,11 +168,7 @@ export async function getHongsam(): Promise<Fetched<HongsamStats>> {
     const guides = ev.filter((e) => e.kind === 'guide');
     const gm = guides.filter(inMonth);
     const searches = ev.filter((e) => e.kind === 'search');
-    const usd = (e: Ev) => {
-      const p = priceOf(String(e.meta?.model ?? ''));
-      const n = (k: string) => Number(e.meta?.[k]) || 0;
-      return (n('input') * p.in + n('output') * p.out + n('cache_read') * p.read + n('cache_write') * p.in * 1.25) / 1e6;
-    };
+    const usd = (e: Ev) => usdOf(e.meta);
 
     const days = new Map(lastDays(30).map((d) => [d, { orders: 0, sum: 0, guides: 0 }]));
     for (const e of ev) {

@@ -2,10 +2,11 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Activity, CreditCard, GraduationCap, KeyRound, LayoutGrid, Leaf, ShoppingBag, Sparkles, Wallet, Users } from 'lucide-react';
+import { Activity, CreditCard, GraduationCap, KeyRound, LayoutGrid, Leaf, MessageCircle, ShoppingBag, Sparkles, Wallet, Users } from 'lucide-react';
 
 const MAIN = [
   { href: '/my', label: 'Umumiy', icon: LayoutGrid },
+  { href: '/my/chat', label: 'Claude', icon: MessageCircle },
   { href: '/my/dentaflow', label: 'DentaFlow', icon: Activity },
   { href: '/my/seedbee', label: 'SeedBee', icon: ShoppingBag },
   { href: '/my/skyplus', label: 'SkyPlus', icon: GraduationCap },

@@ -6,6 +6,7 @@ import { requireHub } from '@/lib/hub/guard';
 import { compactSom, daysUntil, getDentaflow, getSeedbee, getSettings, getSkyplus, getSubs, money, monthlySom, som } from '@/lib/hub/data';
 import { getAiblok, getHongsam } from '@/lib/hub/aiblok-hongsam';
 import { BUCKETS, PROJECTS, bucketOf } from '@/lib/hub/projects';
+import { monthChatUsd } from '@/lib/hub/assistant';
 import { buildSignals, type Signal, type Tone } from '@/lib/hub/signals';
 import { CountUp } from './CountUp';
 
@@ -16,7 +17,7 @@ const ICON: Record<Tone, typeof Info> = { ok: BadgeCheck, warn: AlertTriangle, b
 
 export default async function Overview() {
   await requireHub();
-  const [subs, { usdRate }, df, sb, sp, ab, hs] = await Promise.all([getSubs(), getSettings(), getDentaflow(), getSeedbee(), getSkyplus(), getAiblok(), getHongsam()]);
+  const [subs, { usdRate }, df, sb, sp, ab, hs, chatUsd] = await Promise.all([getSubs(), getSettings(), getDentaflow(), getSeedbee(), getSkyplus(), getAiblok(), getHongsam(), monthChatUsd()]);
   const liveOk: Record<string, boolean> = { dentaflow: df.ok, seedbee: sb.ok, skyplus: sp.ok, aiblok: ab.ok, hongsam: hs.ok };
   const revenue = [
     { name: 'DentaFlow', ok: df.ok, som: df.ok ? df.data.revenue.month : 0 },
@@ -34,7 +35,8 @@ export default async function Overview() {
   const dfCost = df.ok ? df.data.costs.total.month : 0;
   const sbAi = sb.ok && sb.data.ai ? sb.data.ai.usd.month * usdRate : 0;
   const hsAi = hs.ok ? hs.data.search.usdMonth * usdRate : 0;
-  const apiCost = dfCost + sbAi + hsAi;
+  const hubAi = chatUsd * usdRate;
+  const apiCost = dfCost + sbAi + hsAi + hubAi;
   const totalMonthly = subsMonthly + apiCost;
 
   // Cost map: subscriptions by bucket + DentaFlow's measured API spend.
@@ -44,7 +46,7 @@ export default async function Overview() {
     b.subs += monthlySom(s, usdRate) ?? 0;
     perBucket.set(s.project, b);
   }
-  for (const [key, api] of [['dentaflow', dfCost], ['seedbee', sbAi], ['hongsam', hsAi]] as const) {
+  for (const [key, api] of [['dentaflow', dfCost], ['seedbee', sbAi], ['hongsam', hsAi], ['umumiy', hubAi]] as const) {
     if (!api) continue;
     const b = perBucket.get(key) ?? { subs: 0, api: 0 };
     b.api += api;
