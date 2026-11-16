@@ -15,8 +15,8 @@ export const PROJECTS: Project[] = [
   { key: 'dentaflow', name: 'DentaFlow', what: 'Stomatologiya klinikalari uchun CRM', color: '#3ECFB2', url: 'https://dentaflow.uz', admin: 'https://console.dentaflow.uz', live: true },
   { key: 'seedbee', name: 'SeedBee', what: "Kosmetika do'koni + CRM", color: '#F5B83D', url: 'https://seedbee.uz', admin: 'https://crm.firstcosmetics.uz', live: true },
   { key: 'skyplus', name: 'SkyPlus', what: "O'quv markaz + CRM", color: '#8B9CFF', url: 'https://skyplus.uz', admin: 'https://crm.skyplus.uz', live: true },
-  { key: 'aiblok', name: 'AI Blok', what: 'Kanal, bot, community', color: '#C084FC', url: 'https://community.ferudin.uz', live: false },
-  { key: 'hongsam', name: 'Hongsam', what: 'Qizil jenshen savdosi', color: '#F87171', url: 'https://hongsam.uz', live: false },
+  { key: 'aiblok', name: 'AI Blok', what: 'Kanal, bot, community', color: '#C084FC', url: 'https://community.ferudin.uz', admin: 'https://community.ferudin.uz/admin', live: true },
+  { key: 'hongsam', name: 'Hongsam', what: 'Qizil jenshen savdosi', color: '#F87171', url: 'https://hongsam.uz', live: true },
   { key: 'ferudin', name: 'ferudin.uz', what: 'Shaxsiy sayt', color: '#4C8DFF', url: 'https://ferudin.uz', live: false },
 ];
 

@@ -4,6 +4,7 @@ import {
 } from 'lucide-react';
 import { requireHub } from '@/lib/hub/guard';
 import { compactSom, daysUntil, getDentaflow, getSeedbee, getSettings, getSkyplus, getSubs, money, monthlySom, som } from '@/lib/hub/data';
+import { getAiblok, getHongsam } from '@/lib/hub/aiblok-hongsam';
 import { BUCKETS, PROJECTS, bucketOf } from '@/lib/hub/projects';
 import { CountUp } from './CountUp';
 
@@ -16,12 +17,14 @@ const ICON: Record<Tone, typeof Info> = { ok: BadgeCheck, warn: AlertTriangle, b
 
 export default async function Overview() {
   await requireHub();
-  const [subs, { usdRate }, df, sb, sp] = await Promise.all([getSubs(), getSettings(), getDentaflow(), getSeedbee(), getSkyplus()]);
-  const liveOk: Record<string, boolean> = { dentaflow: df.ok, seedbee: sb.ok, skyplus: sp.ok };
+  const [subs, { usdRate }, df, sb, sp, ab, hs] = await Promise.all([getSubs(), getSettings(), getDentaflow(), getSeedbee(), getSkyplus(), getAiblok(), getHongsam()]);
+  const liveOk: Record<string, boolean> = { dentaflow: df.ok, seedbee: sb.ok, skyplus: sp.ok, aiblok: ab.ok, hongsam: hs.ok };
   const revenue = [
     { name: 'DentaFlow', ok: df.ok, som: df.ok ? df.data.revenue.month : 0 },
     { name: 'SeedBee', ok: sb.ok, som: sb.ok ? sb.data.revenue.month : 0 },
     { name: 'SkyPlus', ok: sp.ok, som: sp.ok ? sp.data.money.month.inUzs : 0 },
+    // Hongsam: savatdagi buyurtma summasi (to'lov tasdig'i hubga kelmaydi)
+    { name: 'Hongsam', ok: hs.ok, som: hs.ok ? hs.data.orders.sumMonth : 0 },
   ];
   const revenueTotal = revenue.reduce((s, r) => s + r.som, 0);
 
@@ -31,7 +34,8 @@ export default async function Overview() {
   const subsMonthly = priced.reduce((sum, s) => sum + (monthlySom(s, usdRate) ?? 0), 0);
   const dfCost = df.ok ? df.data.costs.total.month : 0;
   const sbAi = sb.ok && sb.data.ai ? sb.data.ai.usd.month * usdRate : 0;
-  const apiCost = dfCost + sbAi;
+  const hsAi = hs.ok ? hs.data.search.usdMonth * usdRate : 0;
+  const apiCost = dfCost + sbAi + hsAi;
   const totalMonthly = subsMonthly + apiCost;
 
   // Cost map: subscriptions by bucket + DentaFlow's measured API spend.
@@ -41,7 +45,7 @@ export default async function Overview() {
     b.subs += monthlySom(s, usdRate) ?? 0;
     perBucket.set(s.project, b);
   }
-  for (const [key, api] of [['dentaflow', dfCost], ['seedbee', sbAi]] as const) {
+  for (const [key, api] of [['dentaflow', dfCost], ['seedbee', sbAi], ['hongsam', hsAi]] as const) {
     if (!api) continue;
     const b = perBucket.get(key) ?? { subs: 0, api: 0 };
     b.api += api;
@@ -62,6 +66,10 @@ export default async function Overview() {
   if (!df.ok) signals.push({ tone: 'bad', title: 'DentaFlow ulanmagan', text: df.reason, href: '/my/dentaflow' });
   if (!sb.ok) signals.push({ tone: 'bad', title: 'SeedBee ulanmagan', text: sb.reason, href: '/my/seedbee' });
   if (!sp.ok) signals.push({ tone: 'bad', title: 'SkyPlus ulanmagan', text: sp.reason, href: '/my/skyplus' });
+  if (!ab.ok) signals.push({ tone: 'bad', title: 'AI Blok o‘qilmadi', text: ab.reason, href: '/my/aiblok' });
+  if (!hs.ok) signals.push({ tone: 'bad', title: 'Hongsam o‘qilmadi', text: hs.reason, href: '/my/hongsam' });
+  if (ab.ok && ab.data.questions.open) signals.push({ tone: 'info', title: `AI Blok: ${ab.data.questions.open} ta savol javob kutmoqda`, text: 'Mini App admin → Savollar', href: 'https://community.ferudin.uz/admin' });
+  if (hs.ok && hs.data.orders.today) signals.push({ tone: 'info', title: `Hongsam: bugun ${hs.data.orders.today} ta buyurtma`, text: 'Telegram guruhida tafsilotlar', href: '/my/hongsam' });
   if (sb.ok && sb.data.orders.toProcess) signals.push({ tone: 'info', title: `SeedBee: ${sb.data.orders.toProcess} ta buyurtma ishlov kutmoqda`, text: sb.data.orders.unpaid ? `${sb.data.orders.unpaid} tasi hali to'lanmagan` : "CRM'da ko'rib chiqing", href: 'https://crm.firstcosmetics.uz' });
   if (sp.ok && sp.data.health.notifyFailed) signals.push({ tone: 'warn', title: `SkyPlus: ${sp.data.health.notifyFailed} ta Telegram xabari ketmadi`, text: 'Bot yoki chat ulanishini tekshiring', href: '/my/skyplus' });
   if (sp.ok && sp.data.debts.count) signals.push({ tone: 'info', title: `SkyPlus: ${sp.data.debts.count} ta qarzdor`, text: som(sp.data.debts.uzs), href: '/my/skyplus' });
@@ -103,7 +111,7 @@ export default async function Overview() {
           <div className="card kpi lift rise" style={{ '--glow': '#f472b6', '--d': '90ms' } as React.CSSProperties}>
             <div className="kpi-label"><Cpu size={15} /> API xarajati (bu oy)</div>
             <div className="kpi-value"><CountUp value={Math.round(apiCost)} /><small>so&apos;m</small></div>
-            <div className="kpi-sub">DentaFlow {df.ok ? compactSom(dfCost) : '—'} · SeedBee {sb.ok && sb.data.ai ? compactSom(sbAi) : '—'}</div>
+            <div className="kpi-sub">DentaFlow {df.ok ? compactSom(dfCost) : '—'} · SeedBee {sb.ok && sb.data.ai ? compactSom(sbAi) : '—'} · Hongsam {hs.ok ? compactSom(hsAi) : '—'}</div>
           </div>
           <div className="card kpi lift rise" style={{ '--glow': '#34d399', '--d': '140ms' } as React.CSSProperties}>
             <div className="kpi-label"><TrendingUp size={15} /> Tushum (bu oy)</div>
@@ -194,6 +202,18 @@ export default async function Overview() {
                     <span><b>{compactSom(sp.data.money.month.inUzs)}</b><small>bu oy</small></span>
                     <span><b>{(sp.data.academy.enrollments.active ?? 0) + (sp.data.academy.enrollments.trial ?? 0)}</b><small>o&apos;quvchi</small></span>
                     <span><b>{sp.data.consulting.openCases}</b><small>ariza</small></span>
+                  </div>
+                ) : p.key === 'aiblok' && ab.ok ? (
+                  <div className="tile-stats">
+                    <span><b>{ab.data.members.total}</b><small>a&apos;zo</small></span>
+                    <span><b>{ab.data.engagement30.reads}</b><small>o&apos;qish / 30k</small></span>
+                    <span><b>{ab.data.questions.open}</b><small>savol</small></span>
+                  </div>
+                ) : p.key === 'hongsam' && hs.ok ? (
+                  <div className="tile-stats">
+                    <span><b>{compactSom(hs.data.orders.sumMonth)}</b><small>bu oy</small></span>
+                    <span><b>{hs.data.orders.month}</b><small>buyurtma</small></span>
+                    <span><b>{hs.data.guides.month}</b><small>qo&apos;llanma</small></span>
                   </div>
                 ) : (
                   <div className="tile-stats"><span><b>{perBucket.get(p.key) ? compactSom((perBucket.get(p.key)!.subs)) : '—'}</b><small>obunalar / oy</small></span></div>

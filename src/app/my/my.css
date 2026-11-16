@@ -173,6 +173,8 @@ body.hub {
 }
 .col small { color: var(--faint); font-size: 11px; }
 .col .mono { font-size: 11px; color: var(--muted); }
+.cols.dense { gap: 3px; }
+.cols.dense .col-bar { border-radius: 4px 4px 2px 2px; }
 
 .spark { width: 100%; height: 110px; display: block; }
 .spark path.line { stroke-dasharray: 1200; stroke-dashoffset: 1200; animation: draw 1.4s ease-out forwards; }
