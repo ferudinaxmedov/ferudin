@@ -6,13 +6,12 @@ import { requireHub } from '@/lib/hub/guard';
 import { compactSom, daysUntil, getDentaflow, getSeedbee, getSettings, getSkyplus, getSubs, money, monthlySom, som } from '@/lib/hub/data';
 import { getAiblok, getHongsam } from '@/lib/hub/aiblok-hongsam';
 import { BUCKETS, PROJECTS, bucketOf } from '@/lib/hub/projects';
+import { buildSignals, type Signal, type Tone } from '@/lib/hub/signals';
 import { CountUp } from './CountUp';
 
 export const dynamic = 'force-dynamic';
 export const metadata = { title: 'Umumiy' };
 
-type Tone = 'ok' | 'warn' | 'bad' | 'info';
-type Signal = { tone: Tone; title: string; text: string; href?: string };
 const ICON: Record<Tone, typeof Info> = { ok: BadgeCheck, warn: AlertTriangle, bad: ShieldAlert, info: Info };
 
 export default async function Overview() {
@@ -62,33 +61,8 @@ export default async function Overview() {
     .sort((a, b) => a.days - b.days)
     .slice(0, 5);
 
-  const signals: Signal[] = [];
-  if (!df.ok) signals.push({ tone: 'bad', title: 'DentaFlow ulanmagan', text: df.reason, href: '/my/dentaflow' });
-  if (!sb.ok) signals.push({ tone: 'bad', title: 'SeedBee ulanmagan', text: sb.reason, href: '/my/seedbee' });
-  if (!sp.ok) signals.push({ tone: 'bad', title: 'SkyPlus ulanmagan', text: sp.reason, href: '/my/skyplus' });
-  if (!ab.ok) signals.push({ tone: 'bad', title: 'AI Blok o‘qilmadi', text: ab.reason, href: '/my/aiblok' });
-  if (!hs.ok) signals.push({ tone: 'bad', title: 'Hongsam o‘qilmadi', text: hs.reason, href: '/my/hongsam' });
-  if (ab.ok && ab.data.questions.open) signals.push({ tone: 'info', title: `AI Blok: ${ab.data.questions.open} ta savol javob kutmoqda`, text: 'Mini App admin → Savollar', href: 'https://community.ferudin.uz/admin' });
-  if (hs.ok && hs.data.orders.today) signals.push({ tone: 'info', title: `Hongsam: bugun ${hs.data.orders.today} ta buyurtma`, text: 'Telegram guruhida tafsilotlar', href: '/my/hongsam' });
-  if (sb.ok && sb.data.orders.toProcess) signals.push({ tone: 'info', title: `SeedBee: ${sb.data.orders.toProcess} ta buyurtma ishlov kutmoqda`, text: sb.data.orders.unpaid ? `${sb.data.orders.unpaid} tasi hali to'lanmagan` : "CRM'da ko'rib chiqing", href: 'https://crm.firstcosmetics.uz' });
-  if (sp.ok && sp.data.health.notifyFailed) signals.push({ tone: 'warn', title: `SkyPlus: ${sp.data.health.notifyFailed} ta Telegram xabari ketmadi`, text: 'Bot yoki chat ulanishini tekshiring', href: '/my/skyplus' });
-  if (sp.ok && sp.data.debts.count) signals.push({ tone: 'info', title: `SkyPlus: ${sp.data.debts.count} ta qarzdor`, text: som(sp.data.debts.uzs), href: '/my/skyplus' });
-  if (sp.ok && sp.data.leads.open) signals.push({ tone: 'info', title: `SkyPlus: ${sp.data.leads.open} ta lid javob kutmoqda`, text: 'Tez javob = ko‘proq yozilish', href: 'https://crm.skyplus.uz' });
-  if (df.ok && df.data.health) {
-    const h = df.data.health;
-    if (h.missingEnv.length) signals.push({ tone: 'bad', title: 'DentaFlow: kalitlar yetishmaydi', text: h.missingEnv.join(', '), href: '/my/dentaflow' });
-    if (h.eskizLow) signals.push({ tone: 'bad', title: 'Eskiz balansi kam', text: `Qoldiq: ${som(h.eskizBalance ?? 0)}. SMS to'xtab qolmasin`, href: 'https://my.eskiz.uz' });
-    if (h.lateCrons.length) signals.push({ tone: 'warn', title: `${h.lateCrons.length} ta cron vaqtida ishlamadi`, text: h.lateCrons.join(', '), href: '/my/dentaflow' });
-    if (h.botStale) signals.push({ tone: 'warn', title: 'DentaFlow Telegram boti jim', text: "Railway'ni tekshiring", href: '/my/dentaflow' });
-  }
-  if (df.ok && df.data.revenue.pendingCount) {
-    signals.push({ tone: 'info', title: `${df.data.revenue.pendingCount} ta to'lov tasdiq kutmoqda`, text: som(df.data.revenue.pendingAmount), href: 'https://console.dentaflow.uz/superadmin/payments' });
-  }
-  for (const s of upcoming.filter((u) => u.days <= 3)) {
-    signals.push({ tone: s.days < 0 ? 'bad' : 'warn', title: `${s.name}: ${s.days < 0 ? "to'lov o'tib ketgan" : s.days === 0 ? "bugun to'lov" : `${s.days} kunda to'lov`}`, text: s.amount !== null ? money(s.amount, s.currency) : 'narx kiritilmagan', href: '/my/obunalar' });
-  }
-  if (missing.length) signals.push({ tone: 'warn', title: `${missing.length} ta obunaning narxi kiritilmagan`, text: 'Oylik jami to‘liq chiqishi uchun narxlarni kiriting', href: '/my/obunalar' });
-  if (!signals.length) signals.push({ tone: 'ok', title: 'Hammasi joyida', text: 'Diqqat talab qiladigan narsa yo‘q' });
+  const signals: Signal[] = buildSignals({ subs, df, sb, sp, ab, hs });
+  if (!signals.length) signals.push({ key: 'ok', tone: 'ok', title: 'Hammasi joyida', text: 'Diqqat talab qiladigan narsa yo‘q' });
 
   const today = new Intl.DateTimeFormat('uz-UZ', { timeZone: 'Asia/Tashkent', weekday: 'long', day: 'numeric', month: 'long' }).format(new Date());
 
