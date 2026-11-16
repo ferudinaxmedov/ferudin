@@ -1,23 +1,31 @@
 import { timingSafeEqual } from 'node:crypto';
 import { runDigest, runTick, sendTelegram } from '@/lib/hub/alerts';
+import { createServiceClient } from '@/lib/supabase';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 export const maxDuration = 30;
 
-// Called by pg_cron in the DentaFlow Supabase (pg_net), Bearer HUB_CRON_SECRET (stored in Supabase Vault).
+// Called by pg_cron in the DentaFlow Supabase (pg_net) with a Bearer token, see authorized().
 // Body: { "mode": "tick" | "digest" | "test" }.
 
-function authorized(req: Request) {
-  const token = process.env.HUB_CRON_SECRET;
-  if (!token || token.length < 32) return false;
-  const a = Buffer.from((req.headers.get('authorization') ?? '').replace(/^Bearer\s+/i, ''));
-  const b = Buffer.from(token);
-  return a.length === b.length && timingSafeEqual(a, b);
+// pg_cron sends the Vault secret 'hub_cron_secret' (generated inside the DB, never leaves it);
+// my_cron_check() compares it server-side. HUB_CRON_SECRET env stays as a manual/test key.
+async function authorized(req: Request) {
+  const got = (req.headers.get('authorization') ?? '').replace(/^Bearer\s+/i, '');
+  if (got.length < 32 || got.length > 200) return false;
+  const env = process.env.HUB_CRON_SECRET;
+  if (env && env.length >= 32) {
+    const a = Buffer.from(got);
+    const b = Buffer.from(env);
+    if (a.length === b.length && timingSafeEqual(a, b)) return true;
+  }
+  const { data } = await createServiceClient().rpc('my_cron_check', { token: got });
+  return data === true;
 }
 
 export async function POST(req: Request) {
-  if (!authorized(req)) return Response.json({ ok: false }, { status: 401 });
+  if (!(await authorized(req))) return Response.json({ ok: false }, { status: 401 });
   let mode = 'tick';
   try {
     mode = ((await req.json()) as { mode?: string }).mode ?? 'tick';
