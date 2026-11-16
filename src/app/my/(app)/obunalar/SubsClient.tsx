@@ -5,6 +5,7 @@ import { ExternalLink, Pencil, Plus, Trash2 } from 'lucide-react';
 import type { Sub } from '@/lib/hub/data';
 import { BUCKETS, bucketOf } from '@/lib/hub/projects';
 import { deleteSub, saveRate, saveSub } from './actions';
+import { CalendarCard } from './CalendarCard';
 
 const fmtSom = (n: number) => `${Math.round(n).toLocaleString('ru-RU').replace(/ /g, ' ')} so'm`;
 const fmtMoney = (a: number, c: 'USD' | 'UZS') => (c === 'USD' ? `$${a.toLocaleString('en-US', { maximumFractionDigits: 2 })}` : fmtSom(a));
@@ -14,7 +15,7 @@ const monthly = (s: Sub, rate: number) => {
   return s.period === 'year' ? v / 12 : v;
 };
 
-export function SubsClient({ subs, usdRate }: { subs: Sub[]; usdRate: number }) {
+export function SubsClient({ subs, usdRate, calendarUrl }: { subs: Sub[]; usdRate: number; calendarUrl: string | null }) {
   const [editing, setEditing] = useState<Partial<Sub> | null>(null);
   const [filter, setFilter] = useState<string>('all');
   const [error, setError] = useState<string | null>(null);
@@ -66,6 +67,8 @@ export function SubsClient({ subs, usdRate }: { subs: Sub[]; usdRate: number }) 
           </button>
         </div>
       </header>
+
+      <CalendarCard url={calendarUrl} />
 
       <div className="card rise" style={{ '--d': '60ms' } as React.CSSProperties}>
         <div className="card-h" style={{ flexWrap: 'wrap' }}>

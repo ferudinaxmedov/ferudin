@@ -27,6 +27,12 @@ function line(s: Signal, prefix = ICON[s.tone]) {
 }
 
 const tashkentHour = () => (new Date().getUTCHours() + 5) % 24;
+/** Tashkent calendar date (YYYY-MM-DD), offset in days. */
+const tashkentDay = (plus = 0) => new Date(Date.now() + 5 * 3_600_000 + plus * 86_400_000).toISOString().slice(0, 10);
+const subPrice = (s: { amount: number | null; currency: string; period: string }) =>
+  s.amount === null || s.amount === undefined
+    ? 'narx kiritilmagan'
+    : `${s.currency === 'USD' ? `$${s.amount}` : som(Number(s.amount))} / ${s.period === 'year' ? 'yil' : 'oy'}`;
 
 export async function loadHub(): Promise<HubData> {
   const [subs, df, sb, sp, ab, hs] = await Promise.all([getSubs(), getDentaflow(), getSeedbee(), getSkyplus(), getAiblok(), getHongsam()]);
@@ -92,6 +98,20 @@ export async function runTick() {
   for (const st of gone) {
     if (seeded && st.sent && (st.tone === 'bad' || st.tone === 'warn')) lines.push(`✅ <b>Hal bo‘ldi:</b> ${esc(st.title)}`);
   }
+  // Subscription charge / domain expiry: one push the day before (from 09:00), or on the day if that was missed.
+  const today = tashkentDay(0);
+  const tomorrow = tashkentDay(1);
+  for (const sub of hub.subs) {
+    const d = sub.next_charge?.slice(0, 10);
+    if (!sub.active || !d) continue;
+    const isTomorrow = d === tomorrow && tashkentHour() >= 9;
+    if (!isTomorrow && d !== today) continue;
+    const key = `_due:${sub.id}:${d}`;
+    if (state.has(key)) continue;
+    lines.push(`⏳ <b>${isTomorrow ? 'Ertaga' : 'Bugun'} to‘lov: ${esc(sub.name)}</b>\n${esc(subPrice(sub))}${sub.notes ? `\n${esc(sub.notes)}` : ''}\n<a href="${HUB}/my/obunalar">Obunalar</a>`);
+    upserts.push({ key, tone: 'info', title: sub.name, count: null, sent: true });
+  }
+
   if (!seeded) upserts.push({ key: '_seeded', tone: 'ok', title: 'first tick', count: null, sent: true });
 
   let sent: { ok: boolean; reason?: string } = { ok: true };

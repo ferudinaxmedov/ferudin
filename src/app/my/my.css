@@ -355,3 +355,12 @@ select.input { appearance: none; background-image: linear-gradient(45deg, transp
 .proposal.is-failed .proposal-tag { color: var(--bad); }
 .proposal-actions { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
 .proposal-actions .btn { min-height: 36px; }
+
+/* Obunalar: calendar feed card */
+.cal-card { padding: 16px; margin-bottom: 16px; display: grid; gap: 12px; }
+.cal-head { display: flex; gap: 12px; align-items: flex-start; }
+.cal-head p { margin: 4px 0 0; }
+.cal-ico { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 10px; background: var(--accent-soft); color: var(--accent); flex: none; }
+.cal-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.cal-actions .btn { min-height: 36px; text-decoration: none; }
+.cal-url { width: 100%; color: var(--faint); }

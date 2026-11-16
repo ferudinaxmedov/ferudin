@@ -8,5 +8,7 @@ export const metadata = { title: 'Obunalar' };
 export default async function SubsPage() {
   await requireHub();
   const [subs, { usdRate }] = await Promise.all([getSubs(), getSettings()]);
-  return <SubsClient subs={subs} usdRate={usdRate} />;
+  const token = process.env.HUB_CALENDAR_TOKEN;
+  const calendarUrl = token ? `https://my.ferudin.uz/api/hub/calendar?k=${token}` : null;
+  return <SubsClient subs={subs} usdRate={usdRate} calendarUrl={calendarUrl} />;
 }
