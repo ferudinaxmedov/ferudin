@@ -107,7 +107,7 @@ async function submitCode(prev: LoginState, form: FormData): Promise<LoginState>
   await audit('login');
 
   const from = String(form.get('from') ?? '');
-  redirect(from.startsWith('/my') || from.startsWith('/workspace') ? from : '/my');
+  redirect(from.startsWith('/my') ? from : '/my');
 }
 
 export async function logout() {

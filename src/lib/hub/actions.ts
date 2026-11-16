@@ -2,7 +2,8 @@ import type Anthropic from '@anthropic-ai/sdk';
 import { revalidatePath } from 'next/cache';
 import { createServiceClient } from '@/lib/supabase';
 import { getSettings, getSubs, type Sub } from './data';
-import { BUCKETS } from './projects';
+import { BUCKETS, PROJECTS } from './projects';
+import { callRemote, LEAD_STATUS, ORDER_STATUS, type Lead, type Order } from './remote';
 
 /**
  * Hub F4: confirm-then-act. Claude never writes directly: a propose_* tool validates the input, stores a
@@ -86,11 +87,99 @@ export const ACTION_TOOLS: Anthropic.Tool[] = [
     description: "Hubdagi dollar kursini (so'm) qo'lda o'zgartirishni TAKLIF qilish. Odatda kerak emas: kurs Markaziy bankdan har kuni avtomatik olinadi, qo'lda qiymat keyingi yangilanishgacha turadi.",
     input_schema: { type: 'object', properties: { rate: { type: 'number' } }, required: ['rate'] },
   },
+  {
+    name: 'propose_goal',
+    description: "Loyihaning shu oylik tushum maqsadini (so'm) qo'yish yoki olib tashlashni TAKLIF qilish. target=0 bo'lsa maqsad olib tashlanadi.",
+    input_schema: {
+      type: 'object',
+      properties: { project: { type: 'string', enum: ['dentaflow', 'seedbee', 'skyplus', 'hongsam'] }, target: { type: 'number' } },
+      required: ['project', 'target'],
+    },
+  },
+  {
+    name: 'skyplus_leads',
+    description: "SkyPlus CRM lidlari (o'qish): oxirgilari yoki status bo'yicha. Status: new, contacted, consult, trial, converted, lost.",
+    input_schema: {
+      type: 'object',
+      properties: { status: { type: 'string', enum: Object.keys(LEAD_STATUS) }, limit: { type: 'integer', minimum: 1, maximum: 30 } },
+    },
+  },
+  {
+    name: 'propose_lead_update',
+    description: "SkyPlus lidining statusini o'zgartirish va/yoki izoh qo'shishni TAKLIF qilish. lead_id ni skyplus_leads dan ol. lost uchun lost_reason shart.",
+    input_schema: {
+      type: 'object',
+      properties: {
+        lead_id: { type: 'string' },
+        status: { type: 'string', enum: Object.keys(LEAD_STATUS) },
+        note: { type: 'string' },
+        lost_reason: { type: 'string' },
+      },
+      required: ['lead_id'],
+    },
+  },
+  {
+    name: 'seedbee_orders',
+    description: "SeedBee buyurtmalari (o'qish): status bo'yicha yoki ochiqlari (new, confirmed, paid, shipped). Mijoz ismi/telefoni berilmaydi.",
+    input_schema: {
+      type: 'object',
+      properties: { status: { type: 'string', enum: Object.keys(ORDER_STATUS) }, limit: { type: 'integer', minimum: 1, maximum: 30 } },
+    },
+  },
+  {
+    name: 'propose_order_status',
+    description: "SeedBee buyurtma statusini o'zgartirishni TAKLIF qilish (CRM'dagi bilan bir xil yo'l). order_id ni seedbee_orders dan ol. Diqqat: delivered va cancelled mijozga SMS yuboradi va keshbekka ta'sir qiladi: buni javobda ayt.",
+    input_schema: {
+      type: 'object',
+      properties: { order_id: { type: 'string' }, status: { type: 'string', enum: Object.keys(ORDER_STATUS) } },
+      required: ['order_id', 'status'],
+    },
+  },
+  {
+    name: 'aiblok_questions',
+    description: "AI Blok'ka kelgan savollar (o'qish): javobsizlari yoki oxirgilari.",
+    input_schema: { type: 'object', properties: { answered: { type: 'boolean', description: 'true = javob berilganlari ham' } } },
+  },
+  {
+    name: 'propose_question_answer',
+    description: "AI Blok savoliga javobni TAKLIF qilish. Tasdiqlansa javob @AIBLOK_BOT orqali savol beruvchiga yuboriladi va '— Ferudin' imzosi qo'shiladi. Javobni Ferudin ovozida, qisqa va aniq yoz.",
+    input_schema: {
+      type: 'object',
+      properties: { id: { type: 'string' }, answer: { type: 'string' } },
+      required: ['id', 'answer'],
+    },
+  },
 ];
 
 export const isActionTool = (name: string) => ACTION_TOOLS.some((t) => t.name === name);
 
-type Built = { kind: string; input: Record<string, unknown>; summary: string } | { error: string };
+const tashkentMonthKey = () => new Date(Date.now() + 5 * 3_600_000).toISOString().slice(0, 7);
+
+async function findLead(id: string): Promise<{ lead: Lead } | { error: string }> {
+  const r = await callRemote<{ leads?: Lead[] }>('skyplus', { action: 'leads_list', limit: 30 });
+  if (!r.ok) return { error: r.error ?? 'SkyPlus javob bermadi' };
+  let lead = r.leads?.find((l) => l.id === id);
+  for (const st of Object.keys(LEAD_STATUS)) {
+    if (lead) break;
+    const x = await callRemote<{ leads?: Lead[] }>('skyplus', { action: 'leads_list', status: st, limit: 30 });
+    lead = x.leads?.find((l) => l.id === id);
+  }
+  return lead ? { lead } : { error: 'Lid topilmadi (skyplus_leads dan id oling)' };
+}
+
+async function findOrder(id: string): Promise<{ order: Order } | { error: string }> {
+  const r = await callRemote<{ orders?: Order[] }>('seedbee', { action: 'orders_list', limit: 30 });
+  if (!r.ok) return { error: r.error ?? 'SeedBee javob bermadi' };
+  let order = r.orders?.find((o) => o.id === id);
+  for (const st of ['delivered', 'cancelled']) {
+    if (order) break;
+    const x = await callRemote<{ orders?: Order[] }>('seedbee', { action: 'orders_list', status: st, limit: 30 });
+    order = x.orders?.find((o) => o.id === id);
+  }
+  return order ? { order } : { error: 'Buyurtma topilmadi (seedbee_orders dan id oling)' };
+}
+
+type Built ={ kind: string; input: Record<string, unknown>; summary: string } | { error: string };
 
 async function build(name: string, raw: Record<string, unknown>): Promise<Built> {
   switch (name) {
@@ -188,6 +277,71 @@ async function build(name: string, raw: Record<string, unknown>): Promise<Built>
       if (rate === usdRate) return { error: 'Kurs allaqachon shu' };
       return { kind: 'usd_rate', input: { rate }, summary: `Dollar kursi: ${usdRate} → ${rate} so‘m` };
     }
+    case 'propose_goal': {
+      const project = s(raw.project, 30) ?? '';
+      const p = PROJECTS.find((x) => x.key === project);
+      if (!p || !['dentaflow', 'seedbee', 'skyplus', 'hongsam'].includes(project)) return { error: 'Noma’lum loyiha' };
+      const target = Math.round(Number(raw.target));
+      if (!Number.isFinite(target) || target < 0 || target > 1e13) return { error: 'Summa noto‘g‘ri' };
+      const month = `${tashkentMonthKey()}-01`;
+      const summary = target
+        ? `${p.name}: shu oy tushum maqsadi ${target.toLocaleString('ru-RU').replace(/,/g, ' ')} so‘m`
+        : `${p.name}: shu oy maqsadini olib tashlash`;
+      return { kind: 'goal_set', input: { project, month, target }, summary };
+    }
+    case 'propose_lead_update': {
+      const leadId = s(raw.lead_id, 64);
+      if (!leadId) return { error: 'lead_id kerak' };
+      const status = s(raw.status, 20);
+      const note = s(raw.note, 1000);
+      const lost = s(raw.lost_reason, 300);
+      if (status && !LEAD_STATUS[status]) return { error: 'Status noto‘g‘ri' };
+      if (!status && !note) return { error: 'Status yoki izoh kerak' };
+      if (status === 'lost' && !lost) return { error: 'lost uchun lost_reason (sabab) kerak' };
+      const found = await findLead(leadId);
+      if ('error' in found) return found;
+      const lead = found.lead;
+      if (status === lead.status && !note) return { error: 'Lid allaqachon shu statusda' };
+      const bits = [
+        status && status !== lead.status ? `${LEAD_STATUS[lead.status] ?? lead.status} → ${LEAD_STATUS[status]}` : null,
+        lost ? `sabab: ${lost}` : null,
+        note ? `izoh: ${note}` : null,
+      ].filter(Boolean);
+      return {
+        kind: 'lead_update',
+        input: { lead_id: leadId, ...(status ? { status } : {}), ...(note ? { note } : {}), ...(lost ? { lost_reason: lost } : {}) },
+        summary: `SkyPlus lid ${lead.label ?? leadId.slice(0, 8)}: ${bits.join('; ')}`,
+      };
+    }
+    case 'propose_order_status': {
+      const orderId = s(raw.order_id, 64);
+      const status = s(raw.status, 20);
+      if (!orderId || !/^[0-9a-f-]{36}$/i.test(orderId)) return { error: 'order_id noto‘g‘ri' };
+      if (!status || !ORDER_STATUS[status]) return { error: 'Status noto‘g‘ri' };
+      const found = await findOrder(orderId);
+      if ('error' in found) return found;
+      const o = found.order;
+      if (o.status === status) return { error: 'Buyurtma allaqachon shu statusda' };
+      const warn = status === 'delivered' ? ' (mijozga "yetkazildi" SMS, keshbek ochiladi)' : status === 'cancelled' ? ' (mijozga "bekor qilindi" SMS, keshbek bekor)' : '';
+      return {
+        kind: 'order_status',
+        input: { order_id: orderId, status },
+        summary: `SeedBee #${o.number}: ${ORDER_STATUS[o.status] ?? o.status} → ${ORDER_STATUS[status]}${warn}`,
+      };
+    }
+    case 'propose_question_answer': {
+      const id = s(raw.id, 64);
+      const answer = s(raw.answer, 3000);
+      if (!id || !answer) return { error: 'id va javob kerak' };
+      const { data: q } = await db().from('aiblok_questions').select('id, body, first_name, answered_at').eq('id', id).maybeSingle();
+      if (!q) return { error: 'Savol topilmadi' };
+      if (q.answered_at) return { error: 'Bu savolga allaqachon javob berilgan' };
+      return {
+        kind: 'question_answer',
+        input: { id, answer },
+        summary: `AI Blok javobi (${q.first_name ?? 'ismsiz'}ga bot orqali): «${q.body.slice(0, 80)}${q.body.length > 80 ? '…' : ''}» → ${answer}`,
+      };
+    }
     default:
       return { error: `Noma'lum amal: ${name}` };
   }
@@ -201,6 +355,20 @@ export async function runActionTool(name: string, raw: Record<string, unknown>, 
       db().from('my_mutes').select('key, until').gt('until', new Date().toISOString()),
     ]);
     return { text: JSON.stringify({ reminders: (r.data ?? []).map((x) => ({ ...x, due: fmtTime(x.due_at) })), mutes: m.data ?? [] }) };
+  }
+  if (name === 'skyplus_leads') {
+    const r = await callRemote('skyplus', { action: 'leads_list', ...(raw.status ? { status: raw.status } : {}), limit: Math.min(30, Number(raw.limit) || 15) });
+    return { text: JSON.stringify(r).slice(0, 30_000) };
+  }
+  if (name === 'seedbee_orders') {
+    const r = await callRemote('seedbee', { action: 'orders_list', ...(raw.status ? { status: raw.status } : {}), limit: Math.min(30, Number(raw.limit) || 15) });
+    return { text: JSON.stringify(r).slice(0, 30_000) };
+  }
+  if (name === 'aiblok_questions') {
+    let q = db().from('aiblok_questions').select('id, first_name, body, source, answer, answered_at, created_at').order('created_at', { ascending: false }).limit(30);
+    if (!raw.answered) q = q.is('answered_at', null);
+    const { data, error } = await q;
+    return { text: JSON.stringify(error ? { error: error.message } : data) };
   }
   const b = await build(name, raw);
   if ('error' in b) return { text: JSON.stringify({ error: b.error }) };
@@ -244,6 +412,25 @@ async function execute(kind: string, input: Record<string, unknown>): Promise<st
     case 'usd_rate':
       must(await db().from('my_settings').update({ usd_rate: input.rate, usd_rate_source: 'manual', updated_at: now }).eq('id', 1));
       return 'Kurs yangilandi';
+    case 'goal_set':
+      if (Number(input.target) > 0) must(await db().from('my_goals').upsert({ project: input.project, month: input.month, target: input.target }, { onConflict: 'project,month' }));
+      else must(await db().from('my_goals').delete().eq('project', String(input.project)).eq('month', String(input.month)));
+      return 'Maqsad saqlandi';
+    case 'lead_update': {
+      const r = await callRemote<{ from?: string; to?: string }>('skyplus', { action: 'lead_update', ...input });
+      if (!r.ok) throw new Error(r.error ?? 'SkyPlus xatosi');
+      return r.to && r.from !== r.to ? `Lid: ${LEAD_STATUS[r.from ?? ''] ?? r.from} → ${LEAD_STATUS[r.to] ?? r.to}` : 'Lid yangilandi';
+    }
+    case 'order_status': {
+      const r = await callRemote<{ number?: number; to?: string; changed?: boolean }>('seedbee', { action: 'order_status', ...input });
+      if (!r.ok) throw new Error(r.error ?? 'SeedBee xatosi');
+      return r.changed === false ? 'O‘zgarish yo‘q: allaqachon shu statusda' : `#${r.number}: ${ORDER_STATUS[r.to ?? ''] ?? r.to}`;
+    }
+    case 'question_answer': {
+      const r = await callRemote<{ delivered?: boolean }>('aiblok', { action: 'question_answer', ...input });
+      if (!r.ok) throw new Error(r.error ?? 'AI Blok xatosi');
+      return r.delivered ? 'Javob saqlandi va yuborildi' : 'Javob saqlandi, lekin yetkazilmadi (botni bloklagan)';
+    }
     default:
       throw new Error(`Noma'lum amal turi: ${kind}`);
   }

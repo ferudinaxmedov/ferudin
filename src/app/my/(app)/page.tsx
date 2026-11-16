@@ -8,6 +8,7 @@ import { getAiblok, getHongsam } from '@/lib/hub/aiblok-hongsam';
 import { BUCKETS, PROJECTS, bucketOf } from '@/lib/hub/projects';
 import { monthChatUsd } from '@/lib/hub/assistant';
 import { buildSignals, type Signal, type Tone } from '@/lib/hub/signals';
+import { getMonitor, monitorSignals } from '@/lib/hub/monitor';
 import { CountUp } from './CountUp';
 
 export const dynamic = 'force-dynamic';
@@ -18,6 +19,7 @@ const ICON: Record<Tone, typeof Info> = { ok: BadgeCheck, warn: AlertTriangle, b
 export default async function Overview() {
   await requireHub();
   const [subs, { usdRate }, df, sb, sp, ab, hs, chatUsd] = await Promise.all([getSubs(), getSettings(), getDentaflow(), getSeedbee(), getSkyplus(), getAiblok(), getHongsam(), monthChatUsd()]);
+  const mon = await getMonitor();
   const liveOk: Record<string, boolean> = { dentaflow: df.ok, seedbee: sb.ok, skyplus: sp.ok, aiblok: ab.ok, hongsam: hs.ok };
   const revenue = [
     { name: 'DentaFlow', ok: df.ok, som: df.ok ? df.data.revenue.month : 0 },
@@ -63,7 +65,7 @@ export default async function Overview() {
     .sort((a, b) => a.days - b.days)
     .slice(0, 5);
 
-  const signals: Signal[] = buildSignals({ subs, df, sb, sp, ab, hs });
+  const signals: Signal[] = [...monitorSignals(mon), ...buildSignals({ subs, df, sb, sp, ab, hs })];
   if (!signals.length) signals.push({ key: 'ok', tone: 'ok', title: 'Hammasi joyida', text: 'Diqqat talab qiladigan narsa yo‘q' });
 
   const today = new Intl.DateTimeFormat('uz-UZ', { timeZone: 'Asia/Tashkent', weekday: 'long', day: 'numeric', month: 'long' }).format(new Date());

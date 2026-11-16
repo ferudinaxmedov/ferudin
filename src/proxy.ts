@@ -33,20 +33,22 @@ export function proxy(request: NextRequest) {
     return NextResponse.redirect(`https://ferudin.uz${pathname}${request.nextUrl.search}`);
   }
 
-  // my.ferudin.uz: owner's hub. Password + TOTP session (src/lib/hub/session.ts) guards /my and the old /workspace.
+  // my.ferudin.uz: owner's hub. Password + TOTP session (src/lib/hub/session.ts) guards /my.
+  // The old /workspace was removed (2026-11-17): any old link lands on the hub.
   const prod = process.env.NODE_ENV === 'production';
   const isHubHost = host.startsWith('my.');
-  const isHubPath = pathname === '/my' || pathname.startsWith('/my/') || pathname.startsWith('/workspace');
+  if (pathname === '/workspace' || pathname.startsWith('/workspace/')) {
+    return NextResponse.redirect(prod ? 'https://my.ferudin.uz/my' : new URL('/my', request.url));
+  }
+  const isHubPath = pathname === '/my' || pathname.startsWith('/my/');
 
   if (isHubHost && !isHubPath) return NextResponse.redirect(new URL('/my', request.url));
   if (isHubPath) {
     // In production the hub lives only on its own subdomain (cookies are host-only).
     if (prod && !isHubHost) {
-      if (pathname.startsWith('/workspace')) return NextResponse.redirect(`https://my.ferudin.uz${pathname}`);
       return new NextResponse('Not found', { status: 404 });
     }
     if (pathname === '/my/login') return NextResponse.next();
-    if (pathname === '/workspace/login') return NextResponse.redirect(new URL('/my/login', request.url));
     if (!verifyToken(request.cookies.get(SESSION_COOKIE)?.value, 'session')) {
       const url = new URL('/my/login', request.url);
       url.search = '';

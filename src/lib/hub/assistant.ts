@@ -6,6 +6,9 @@ import { sendTelegram } from './alerts';
 import { usdOf } from './claude-cost';
 import { getDentaflow, getSeedbee, getSettings, getSkyplus, getSubs, monthlySom } from './data';
 import { buildSignals } from './signals';
+import { getPnl } from './pnl';
+import { getMonitor, monitorSignals, sslDaysLeft } from './monitor';
+import { monthCosts } from './costs';
 
 /**
  * Hub F3/F4: the owner's own Claude. One brain for the web chat (/my/chat) and Telegram (@Ferudinbot).
@@ -36,8 +39,9 @@ Qoidalar:
 - Faqat o'zbek tilida (lotin), qisqa va aniq javob ber. Avval javob, keyin kerak bo'lsa 2-3 qator izoh.
 - Raqamlarni faqat asboblardan ol. Taxmin qilma, to'qima. Ma'lumot yo'q yoki o'qilmagan bo'lsa, shuni ochiq ayt.
 - Pul: so'mda, minglar orasida bo'sh joy bilan (masalan 1 250 000 so'm). Dollar xarajatlarni $ bilan.
-- Yozish faqat hub ichida va faqat taklif orqali: obunalar (qo'shish, o'zgartirish, o'chirib qo'yish), eslatmalar, signalni vaqtincha o'chirish, dollar kursi. Buning uchun propose_* asbobini chaqir. Taklif saqlanadi, Ferudin ✅ bosgandagina bajariladi: hech qachon "bajarildi" dema, "tasdiqlang" de. So'ralmagan amalni taklif qilma.
-- Boshqa loyihalarda (DentaFlow, SeedBee, SkyPlus, AI Blok, Hongsam) yozish imkoning yo'q: buni qayerda qilish mumkinligini ayt (o'sha CRM yoki admin panel).
+- Yozish faqat taklif orqali (propose_* asboblari): hub ichida obunalar, eslatmalar, signalni vaqtincha o'chirish, dollar kursi, oylik maqsad; tashqarida SkyPlus lid statusi/izohi, SeedBee buyurtma statusi, AI Blok savoliga javob. Taklif saqlanadi, Ferudin ✅ bosgandagina bajariladi: hech qachon "bajarildi" dema, "tasdiqlang" de. So'ralmagan amalni taklif qilma.
+- Boshqa yozishlar (DentaFlow, Hongsam, boshqa maydonlar) imkoning yo'q: buni qayerda qilish mumkinligini ayt (o'sha CRM yoki admin panel).
+- Foyda/zarar, maqsad va bashorat savollarida profit_and_loss ni chaqir. Saytlar ishlayaptimi, SSL savollarida site_health ni.
 - Eslatma vaqti Toshkent bo'yicha, ISO formatda +05:00 bilan. "Ertaga ertalab" kabi noaniq vaqtda 09:00 ni ol va javobda vaqtni aniq ayt.
 - Tarixdagi [Taklif: ...] qatorlari avvalgi takliflarning natijasi.
 - Vaqt Toshkent bo'yicha. Har bir xabar boshida [Hozir: ...] belgisi bor, "bugun", "bu oy" shunga qarab.
@@ -74,6 +78,16 @@ const READ_TOOLS: Anthropic.Tool[] = [
       type: 'object',
       properties: { days: { type: 'integer', minimum: 1, maximum: 70, description: "Necha kunlik (1-70), standart 7" } },
     },
+  },
+  {
+    name: 'profit_and_loss',
+    description: "Shu oy foyda va zarar loyihalar kesimida: tushum, obunalar, API, boshqa chiqim, sof foyda, oylik maqsad va bashorat, o'tgan oy, 6 oylik tushum trendi; Anthropic'ning haqiqiy hisobi (bo'lsa).",
+    input_schema: { type: 'object', properties: {} },
+  },
+  {
+    name: 'site_health',
+    description: "Barcha saytlarning holati (har 5 daqiqada tekshiriladi): ochilyaptimi, javob vaqti, SSL necha kunda tugaydi.",
+    input_schema: { type: 'object', properties: {} },
   },
 ];
 
@@ -131,6 +145,17 @@ async function runTool(name: string, input: Record<string, unknown>): Promise<st
         .eq('project', 'hongsam').gte('at', new Date(Date.now() - days * 86_400_000).toISOString())
         .order('at', { ascending: false }).limit(300);
       return clip(error ? { error: error.message } : data);
+    }
+    case 'profit_and_loss': {
+      const [pnl, billed] = await Promise.all([getPnl(), monthCosts()]);
+      return clip({ ...pnl, billedByProviderUsd: billed });
+    }
+    case 'site_health': {
+      const rows = await getMonitor();
+      return clip({
+        sites: rows.map((r) => ({ site: r.site, ok: r.ok, status: r.status, seconds: r.ms === null ? null : r.ms / 1000, sslDaysLeft: sslDaysLeft(r.ssl_expires), error: r.error, checked_at: r.checked_at })),
+        problems: monitorSignals(rows).map(({ tone, title, text }) => ({ tone, title, text })),
+      });
     }
     default:
       return clip({ error: `Noma'lum asbob: ${name}` });
@@ -286,4 +311,31 @@ export function toHtml(md: string): string {
     .replace(/`([^`\n]+)`/g, '<code>$1</code>')
     .replace(/^#{1,6}\s+(.+)$/gm, '<b>$1</b>')
     .replace(/^\s*[-*]\s+/gm, '• ');
+}
+
+/**
+ * Morning digest advice (hub F5): one Sonnet call, no tools, over the numbers the digest already loaded.
+ * Counts toward the monthly chat budget (stored as a channel='system' assistant row, hidden from chats).
+ */
+export async function briefing(facts: unknown): Promise<string | null> {
+  if (!process.env.ANTHROPIC_API_KEY) return null;
+  if ((await monthChatUsd()) >= BUDGET_USD) return null;
+  try {
+    const model = MODELS.fast;
+    const res = await new Anthropic().messages.create({
+      model,
+      max_tokens: 600,
+      system: `Sen Ferudinning boshqaruv markazidagi yordamchisisan. Ertalabki hisobot uchun ma'lumot beriladi.
+O'zbek tilida (lotin) 3-4 ta qisqa qator yoz: bugun nimaga e'tibor berish kerak va bitta aniq qadam.
+Qoidalar: faqat berilgan raqamlarga tayan, to'qima. Maqsaddan orqada qolayotgan loyiha, ochilmayotgan sayt, yaqin to'lov, javobsiz savol yoki lid bo'lsa shularni birinchi ayt.
+Har qator "- " bilan boshlansin. Sarlavha, salomlashish, xulosa yozma. Oddiy matn, markdown belgilarisiz.`,
+      messages: [{ role: 'user', content: `[Bugun: ${nowLabel()}]\n${JSON.stringify(facts).slice(0, 30_000)}` }],
+    });
+    const text = res.content.filter((b): b is Anthropic.TextBlock => b.type === 'text').map((b) => b.text).join('\n').trim();
+    const usd = usdOf({ model, input: res.usage.input_tokens, output: res.usage.output_tokens });
+    await createServiceClient().from('my_chat').insert({ channel: 'system', role: 'assistant', text: `[digest] ${text}`, model, usd });
+    return text || null;
+  } catch {
+    return null;
+  }
 }

@@ -2,6 +2,8 @@ import { createServiceClient } from '@/lib/supabase';
 import { activeMutes, dueReminders, markRemindersSent } from './actions';
 import { getAiblok, getHongsam } from './aiblok-hongsam';
 import { syncUsdRate } from './rate';
+import { syncCosts } from './costs';
+import { getMonitor, monitorSignals } from './monitor';
 import { getDentaflow, getSeedbee, getSettings, getSkyplus, getSubs, som } from './data';
 import { buildSignals, type HubData, type Signal } from './signals';
 
@@ -59,16 +61,17 @@ export async function sendTelegram(html: string): Promise<{ ok: boolean; reason?
 
 export async function runTick() {
   const db = createServiceClient();
-  const [hub, { data: rows, error }, muted, due] = await Promise.all([
-    loadHub(), db.from('my_alert_state').select('key, tone, title, count, sent'), activeMutes(), dueReminders(),
+  const [hub, { data: rows, error }, muted, due, mon] = await Promise.all([
+    loadHub(), db.from('my_alert_state').select('key, tone, title, count, sent'), activeMutes(), dueReminders(), getMonitor(),
     syncUsdRate(), // Central Bank USD rate, at most every 3 hours
+    syncCosts().catch(() => null), // Anthropic billed cost, at most every 6 hours (needs ANTHROPIC_ADMIN_KEY)
   ]);
   if (error) return { ok: false, reason: error.message };
 
   const state = new Map((rows as State[]).map((r) => [r.key, r]));
   const seeded = state.has('_seeded');
   const night = tashkentHour() >= 23 || tashkentHour() < 8;
-  const live = buildSignals(hub).filter((s) => !s.digestOnly && !muted.has(s.key));
+  const live = [...buildSignals(hub), ...monitorSignals(mon)].filter((s) => !s.digestOnly && !muted.has(s.key));
   const upserts: State[] = [];
   const lines: string[] = due.map((r) => `⏰ <b>Eslatma</b>\n${esc(r.text)}`);
   const say = (s: Signal, prefix?: string) => { if (seeded) lines.push(line(s, prefix)); };
@@ -131,7 +134,9 @@ export async function runTick() {
 }
 
 export async function runDigest() {
-  const [hub, { usdRate }] = await Promise.all([loadHub(), getSettings()]);
+  const [hub, { usdRate }, mon, pnl, muted] = await Promise.all([
+    loadHub(), getSettings(), getMonitor(), import('./pnl').then((m) => m.getPnl()).catch(() => null), activeMutes(),
+  ]);
   const { df, sb, sp, hs } = hub;
   const rev = [
     ['DentaFlow', df.ok ? df.data.revenue.month : null],
@@ -145,15 +150,33 @@ export async function runDigest() {
     + (hs.ok ? hs.data.search.usdMonth * usdRate : 0);
 
   const day = new Intl.DateTimeFormat('uz-UZ', { timeZone: 'Asia/Tashkent', weekday: 'long', day: 'numeric', month: 'long' }).format(new Date());
-  const muted = await activeMutes();
-  const signals = buildSignals(hub).filter((s) => !muted.has(s.key));
+  const signals = [...monitorSignals(mon), ...buildSignals(hub)].filter((s) => !muted.has(s.key));
+  const goals = (pnl?.rows ?? []).filter((r) => r.goal && r.revenue !== null).map((r) => {
+    const pct = Math.round(((r.revenue ?? 0) / (r.goal ?? 1)) * 100);
+    const onTrack = r.forecast !== null && r.forecast >= (r.goal ?? 0);
+    return { name: r.name, pct, onTrack, line: `• ${r.name}: ${pct}% ${onTrack ? '✓' : '· sur’at yetmayapti'}` };
+  });
+  const upcoming = hub.subs
+    .filter((x) => x.active && x.next_charge && x.next_charge.slice(0, 10) <= tashkentDay(7))
+    .map((x) => ({ name: x.name, date: x.next_charge!.slice(0, 10), price: subPrice(x) }));
+
+  const advice = await import('./assistant').then((m) => m.briefing({
+    revenueMonthSom: Object.fromEntries(rev), totalSom: total, apiCostSom: Math.round(api),
+    profit: pnl ? { revenue: pnl.totals.revenue, costs: pnl.totals.costs, profit: pnl.totals.profit, day: pnl.day, daysInMonth: pnl.daysInMonth } : null,
+    goals: goals.map(({ name, pct, onTrack }) => ({ name, pct, onTrack })),
+    chargesNext7Days: upcoming,
+    signals: signals.map(({ tone, title, text }) => ({ tone, title, text })),
+  })).catch(() => null);
+
   const parts = [
     `☀️ <b>Ertalabki hisobot</b> · ${esc(day)}`,
+    advice ? `🧭 <b>Bugun</b>\n${esc(advice)}` : '',
     `<b>Bu oy tushum: ${esc(som(total))}</b>\n${rev.map(([n, v]) => `• ${n}: ${v === null ? 'o‘qilmadi' : esc(som(v))}`).join('\n')}`,
-    `API xarajati (bu oy): ${esc(som(api))}`,
+    pnl ? `Sof foyda: <b>${esc(som(pnl.totals.profit))}</b> · API: ${esc(som(api))}` : `API xarajati (bu oy): ${esc(som(api))}`,
+    goals.length ? `<b>Maqsadlar</b>\n${goals.map((g) => esc(g.line)).join('\n')}` : '',
     signals.length ? `<b>Diqqat (${signals.length})</b>\n\n${signals.map((s) => line(s)).join('\n\n')}` : '🟢 Diqqat talab qiladigan narsa yo‘q',
-    `<a href="${HUB}">my.ferudin.uz</a>`,
-  ];
+    `<a href="${HUB}">my.ferudin.uz</a> · <a href="${HUB}/foyda">Foyda</a>`,
+  ].filter(Boolean);
   const r = await sendTelegram(parts.join('\n\n'));
-  return { ok: r.ok, reason: r.reason, signals: signals.length };
+  return { ok: r.ok, reason: r.reason, signals: signals.length, advice: Boolean(advice) };
 }

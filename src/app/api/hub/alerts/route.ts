@@ -1,13 +1,15 @@
 import { timingSafeEqual } from 'node:crypto';
 import { runDigest, runTick, sendTelegram } from '@/lib/hub/alerts';
+import { runMonitor } from '@/lib/hub/monitor';
+import { migrateLegacySecrets } from '@/lib/hub/secrets';
 import { createServiceClient } from '@/lib/supabase';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
-export const maxDuration = 30;
+export const maxDuration = 60;
 
 // Called by pg_cron in the DentaFlow Supabase (pg_net) with a Bearer token, see authorized().
-// Body: { "mode": "tick" | "digest" | "test" }.
+// Body: { "mode": "tick" | "digest" | "test" | "monitor" | "migrate-secrets" }.
 
 // pg_cron sends the Vault secret 'hub_cron_secret' (generated inside the DB, never leaves it);
 // my_cron_check() compares it server-side. HUB_CRON_SECRET env stays as a manual/test key.
@@ -34,6 +36,8 @@ export async function POST(req: Request) {
   const result =
     mode === 'digest' ? await runDigest()
     : mode === 'test' ? await sendTelegram('✅ <b>my.ferudin.uz</b> ogohlantirish boti ulandi. Muammo yoki yangi buyurtma bo‘lsa shu yerga yozaman, har kuni 09:00 da qisqa hisobot keladi.')
+    : mode === 'monitor' ? await runMonitor()
+    : mode === 'migrate-secrets' ? { ok: true, ...(await migrateLegacySecrets()) }
     : await runTick();
   return Response.json(result, { status: result.ok ? 200 : 500 });
 }

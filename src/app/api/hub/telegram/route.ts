@@ -2,6 +2,7 @@ import { timingSafeEqual } from 'node:crypto';
 import { after } from 'next/server';
 import { decide, STATUS_LABEL, type Proposal } from '@/lib/hub/actions';
 import { ask, resetChat, toHtml } from '@/lib/hub/assistant';
+import { transcribe, type Voice } from '@/lib/hub/voice';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -12,7 +13,7 @@ export const maxDuration = 120;
 // F4: each proposal Claude makes arrives as its own message with ✅/❌ buttons (callback data "a:<uuid>:y|n").
 
 type Update = {
-  message?: { chat: { id: number; type: string }; text?: string; message_id: number };
+  message?: { chat: { id: number; type: string }; text?: string; message_id: number; voice?: Voice; audio?: Voice };
   callback_query?: { id: string; from: { id: number }; data?: string; message?: { chat: { id: number }; message_id: number } };
 };
 
@@ -57,8 +58,9 @@ const card = (p: Proposal) =>
 const HELP = [
   '<b>Salom! Men hubdagi Claude yordamchingizman.</b>',
   'Loyihalaringiz bo‘yicha istalgan savolni yozing: tushum, buyurtmalar, lidlar, xarajatlar, signallar. Raqamlarni jonli hub ma’lumotidan olaman.',
-  'Hub ichida amal ham taklif qila olaman: obuna qo‘shish yoki o‘zgartirish, eslatma qo‘yish, signalni vaqtincha o‘chirish, dollar kursi. Har biri ✅ bosganingizdan keyingina bajariladi.',
+  'Amal ham taklif qila olaman: obuna, eslatma, signalni o‘chirish, oylik maqsad, SkyPlus lid statusi, SeedBee buyurtma statusi, AI Blok savoliga javob. Har biri ✅ bosganingizdan keyingina bajariladi.',
   '• Chuqur tahlil (Opus): savolni <code>chuqur:</code> bilan boshlang',
+  '• Ovozli xabar ham yuborishingiz mumkin: matnga aylantirib javob beraman',
   '• /yangi: yangi suhbat (oldingisini unutadi)',
   'Ogohlantirishlar, eslatmalar va 09:00 hisobot ham shu yerga keladi.',
 ].join('\n\n');
@@ -100,9 +102,36 @@ export async function POST(req: Request) {
   const text = (m.text ?? '').trim();
   const send = (html: string, extra: Record<string, unknown> = {}) =>
     tg('sendMessage', { chat_id: chat, text: html, parse_mode: 'HTML', link_preview_options: { is_disabled: true }, ...extra });
+  const answer = async (question: string) => {
+    await tg('sendChatAction', { chat_id: chat, action: 'typing' });
+    const typing = setInterval(() => void tg('sendChatAction', { chat_id: chat, action: 'typing' }), 4500);
+    try {
+      const a = await ask('tg', question);
+      for (const part of chunks(toHtml(a.text))) await send(part);
+      for (const p of a.proposals ?? []) {
+        await send(card(p), {
+          reply_markup: { inline_keyboard: [[{ text: '✅ Tasdiqlash', callback_data: `a:${p.id}:y` }, { text: '❌ Bekor', callback_data: `a:${p.id}:n` }]] },
+        });
+      }
+    } finally {
+      clearInterval(typing);
+    }
+  };
 
-  if (!text) {
-    after(() => send('Hozircha faqat matnli savollarni tushunaman.'));
+  const voice = m.voice ?? m.audio;
+  if (!text && !voice) {
+    after(() => send('Matn yoki ovozli xabar yuboring.'));
+  } else if (!text && voice) {
+    after(async () => {
+      await tg('sendChatAction', { chat_id: chat, action: 'typing' });
+      const t = await transcribe(voice);
+      if ('error' in t) {
+        await send(esc(t.error));
+        return;
+      }
+      await send(`🎙 <i>${esc(t.text)}</i>`);
+      await answer(t.text);
+    });
   } else if (/^\/(start|help|yordam)\b/i.test(text)) {
     after(() => send(HELP));
   } else if (/^\/(yangi|new|reset)\b/i.test(text)) {
@@ -111,21 +140,7 @@ export async function POST(req: Request) {
       await send('Yangi suhbat boshlandi. Savolingizni yozing.');
     });
   } else {
-    after(async () => {
-      await tg('sendChatAction', { chat_id: chat, action: 'typing' });
-      const typing = setInterval(() => void tg('sendChatAction', { chat_id: chat, action: 'typing' }), 4500);
-      try {
-        const a = await ask('tg', text);
-        for (const part of chunks(toHtml(a.text))) await send(part);
-        for (const p of a.proposals ?? []) {
-          await send(card(p), {
-            reply_markup: { inline_keyboard: [[{ text: '✅ Tasdiqlash', callback_data: `a:${p.id}:y` }, { text: '❌ Bekor', callback_data: `a:${p.id}:n` }]] },
-          });
-        }
-      } finally {
-        clearInterval(typing);
-      }
-    });
+    after(() => answer(text));
   }
   return Response.json({ ok: true });
 }
