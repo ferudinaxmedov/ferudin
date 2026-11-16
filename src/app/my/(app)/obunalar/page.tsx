@@ -7,8 +7,9 @@ export const metadata = { title: 'Obunalar' };
 
 export default async function SubsPage() {
   await requireHub();
-  const [subs, { usdRate }] = await Promise.all([getSubs(), getSettings()]);
+  const [subs, { usdRate, rateDate, rateSource }] = await Promise.all([getSubs(), getSettings()]);
   const token = process.env.HUB_CALENDAR_TOKEN;
   const calendarUrl = token ? `https://my.ferudin.uz/api/hub/calendar?k=${token}` : null;
-  return <SubsClient subs={subs} usdRate={usdRate} calendarUrl={calendarUrl} />;
+  return <SubsClient subs={subs} usdRate={usdRate} calendarUrl={calendarUrl}
+    rateNote={rateSource === 'cbu' && rateDate ? `Markaziy bank · ${rateDate.split('-').reverse().join('.')}` : rateSource === 'manual' ? 'Qo‘lda kiritilgan' : null} />;
 }

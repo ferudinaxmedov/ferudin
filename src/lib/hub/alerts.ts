@@ -1,6 +1,7 @@
 import { createServiceClient } from '@/lib/supabase';
 import { activeMutes, dueReminders, markRemindersSent } from './actions';
 import { getAiblok, getHongsam } from './aiblok-hongsam';
+import { syncUsdRate } from './rate';
 import { getDentaflow, getSeedbee, getSettings, getSkyplus, getSubs, som } from './data';
 import { buildSignals, type HubData, type Signal } from './signals';
 
@@ -60,6 +61,7 @@ export async function runTick() {
   const db = createServiceClient();
   const [hub, { data: rows, error }, muted, due] = await Promise.all([
     loadHub(), db.from('my_alert_state').select('key, tone, title, count, sent'), activeMutes(), dueReminders(),
+    syncUsdRate(), // Central Bank USD rate, at most every 3 hours
   ]);
   if (error) return { ok: false, reason: error.message };
 

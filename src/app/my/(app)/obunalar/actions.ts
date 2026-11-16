@@ -49,7 +49,7 @@ export async function saveRate(form: FormData): Promise<{ error?: string }> {
   await requireHub();
   const rate = Number(String(form.get('usd_rate') ?? '').replace(/\s/g, ''));
   if (!Number.isFinite(rate) || rate < 1000 || rate > 100_000) return { error: "Kurs noto'g'ri" };
-  await createServiceClient().from('my_settings').update({ usd_rate: rate, updated_at: new Date().toISOString() }).eq('id', 1);
+  await createServiceClient().from('my_settings').update({ usd_rate: rate, usd_rate_source: 'manual', updated_at: new Date().toISOString() }).eq('id', 1);
   await audit('usd_rate', { rate });
   revalidatePath('/my', 'layout');
   return {};

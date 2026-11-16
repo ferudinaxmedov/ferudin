@@ -83,7 +83,7 @@ export const ACTION_TOOLS: Anthropic.Tool[] = [
   },
   {
     name: 'propose_usd_rate',
-    description: "Hubdagi dollar kursini (so'm) o'zgartirishni TAKLIF qilish.",
+    description: "Hubdagi dollar kursini (so'm) qo'lda o'zgartirishni TAKLIF qilish. Odatda kerak emas: kurs Markaziy bankdan har kuni avtomatik olinadi, qo'lda qiymat keyingi yangilanishgacha turadi.",
     input_schema: { type: 'object', properties: { rate: { type: 'number' } }, required: ['rate'] },
   },
 ];
@@ -242,7 +242,7 @@ async function execute(kind: string, input: Record<string, unknown>): Promise<st
       must(await db().from('my_mutes').delete().eq('key', String(input.key)));
       return 'Signal qayta yoqildi';
     case 'usd_rate':
-      must(await db().from('my_settings').update({ usd_rate: input.rate, updated_at: now }).eq('id', 1));
+      must(await db().from('my_settings').update({ usd_rate: input.rate, usd_rate_source: 'manual', updated_at: now }).eq('id', 1));
       return 'Kurs yangilandi';
     default:
       throw new Error(`Noma'lum amal turi: ${kind}`);

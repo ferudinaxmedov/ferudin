@@ -25,9 +25,9 @@ export type DentaflowStats = {
 
 export type Fetched<T> = { ok: true; data: T } | { ok: false; reason: string };
 
-export async function getSettings(): Promise<{ usdRate: number }> {
-  const { data } = await createServiceClient().from('my_settings').select('usd_rate').eq('id', 1).maybeSingle();
-  return { usdRate: Number(data?.usd_rate) || 12_800 };
+export async function getSettings(): Promise<{ usdRate: number; rateDate: string | null; rateSource: string | null }> {
+  const { data } = await createServiceClient().from('my_settings').select('usd_rate, usd_rate_date, usd_rate_source').eq('id', 1).maybeSingle();
+  return { usdRate: Number(data?.usd_rate) || 12_800, rateDate: data?.usd_rate_date ?? null, rateSource: data?.usd_rate_source ?? null };
 }
 
 export async function getSubs(): Promise<Sub[]> {

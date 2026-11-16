@@ -15,7 +15,7 @@ const monthly = (s: Sub, rate: number) => {
   return s.period === 'year' ? v / 12 : v;
 };
 
-export function SubsClient({ subs, usdRate, calendarUrl }: { subs: Sub[]; usdRate: number; calendarUrl: string | null }) {
+export function SubsClient({ subs, usdRate, calendarUrl, rateNote }: { subs: Sub[]; usdRate: number; calendarUrl: string | null; rateNote: string | null }) {
   const [editing, setEditing] = useState<Partial<Sub> | null>(null);
   const [filter, setFilter] = useState<string>('all');
   const [error, setError] = useState<string | null>(null);
@@ -60,7 +60,7 @@ export function SubsClient({ subs, usdRate, calendarUrl }: { subs: Sub[]; usdRat
             <label className="small muted" htmlFor="usd_rate">$1 =</label>
             <input id="usd_rate" name="usd_rate" defaultValue={usdRate} className="input mono" style={{ width: 96, height: 34 }} inputMode="numeric" />
             <button className="btn btn-ghost small" disabled={pending}>Kurs</button>
-            {rateMsg && <span className="small muted" role="status">{rateMsg}</span>}
+            {rateMsg ? <span className="small muted" role="status">{rateMsg}</span> : rateNote && <span className="small muted" title="Har kuni avtomatik yangilanadi">{rateNote}</span>}
           </form>
           <button className="btn btn-primary" onClick={() => setEditing({ active: true, kind: 'fixed', currency: 'USD', period: 'month', project: 'umumiy' })}>
             <Plus size={16} /> Qo&apos;shish
