@@ -1,4 +1,5 @@
 import { createServiceClient } from '@/lib/supabase';
+import { activeMutes, dueReminders, markRemindersSent } from './actions';
 import { getAiblok, getHongsam } from './aiblok-hongsam';
 import { getDentaflow, getSeedbee, getSettings, getSkyplus, getSubs, som } from './data';
 import { buildSignals, type HubData, type Signal } from './signals';
@@ -8,6 +9,8 @@ import { buildSignals, type HubData, type Signal } from './signals';
  *  - tick (every 15 min): pushes only what is NEW since the last tick (state in my_alert_state);
  *    at night (23:00-08:00 Tashkent) only red alerts go out, the rest wait for the morning.
  *  - digest (09:00): month revenue, API spend and every open signal in one message.
+ * F4: signals muted in my_mutes are skipped (their state is kept, so no false "resolved"), and due
+ * reminders (my_reminders) go out on the tick, day or night: the owner picked that time.
  */
 
 type State = { key: string; tone: string; title: string; count: number | null; sent: boolean };
@@ -49,15 +52,17 @@ export async function sendTelegram(html: string): Promise<{ ok: boolean; reason?
 
 export async function runTick() {
   const db = createServiceClient();
-  const [hub, { data: rows, error }] = await Promise.all([loadHub(), db.from('my_alert_state').select('key, tone, title, count, sent')]);
+  const [hub, { data: rows, error }, muted, due] = await Promise.all([
+    loadHub(), db.from('my_alert_state').select('key, tone, title, count, sent'), activeMutes(), dueReminders(),
+  ]);
   if (error) return { ok: false, reason: error.message };
 
   const state = new Map((rows as State[]).map((r) => [r.key, r]));
   const seeded = state.has('_seeded');
   const night = tashkentHour() >= 23 || tashkentHour() < 8;
-  const live = buildSignals(hub).filter((s) => !s.digestOnly);
+  const live = buildSignals(hub).filter((s) => !s.digestOnly && !muted.has(s.key));
   const upserts: State[] = [];
-  const lines: string[] = [];
+  const lines: string[] = due.map((r) => `⏰ <b>Eslatma</b>\n${esc(r.text)}`);
   const say = (s: Signal, prefix?: string) => { if (seeded) lines.push(line(s, prefix)); };
 
   for (const s of live) {
@@ -83,7 +88,7 @@ export async function runTick() {
   }
 
   const liveKeys = new Set(live.map((s) => s.key));
-  const gone = [...state.values()].filter((st) => !st.key.startsWith('_') && !liveKeys.has(st.key));
+  const gone = [...state.values()].filter((st) => !st.key.startsWith('_') && !liveKeys.has(st.key) && !muted.has(st.key));
   for (const st of gone) {
     if (seeded && st.sent && (st.tone === 'bad' || st.tone === 'warn')) lines.push(`✅ <b>Hal bo‘ldi:</b> ${esc(st.title)}`);
   }
@@ -93,6 +98,7 @@ export async function runTick() {
   if (lines.length) {
     sent = await sendTelegram(lines.join('\n\n'));
     if (!sent.ok) return { ok: false, reason: sent.reason }; // keep state, retry next tick
+    await markRemindersSent(due.map((r) => r.id));
   }
   if (upserts.length) {
     const { error: e } = await db.from('my_alert_state').upsert(upserts.map((u) => ({ ...u, at: new Date().toISOString() })));
@@ -117,7 +123,8 @@ export async function runDigest() {
     + (hs.ok ? hs.data.search.usdMonth * usdRate : 0);
 
   const day = new Intl.DateTimeFormat('uz-UZ', { timeZone: 'Asia/Tashkent', weekday: 'long', day: 'numeric', month: 'long' }).format(new Date());
-  const signals = buildSignals(hub);
+  const muted = await activeMutes();
+  const signals = buildSignals(hub).filter((s) => !muted.has(s.key));
   const parts = [
     `☀️ <b>Ertalabki hisobot</b> · ${esc(day)}`,
     `<b>Bu oy tushum: ${esc(som(total))}</b>\n${rev.map(([n, v]) => `• ${n}: ${v === null ? 'o‘qilmadi' : esc(som(v))}`).join('\n')}`,

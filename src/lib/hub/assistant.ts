@@ -1,5 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { createServiceClient } from '@/lib/supabase';
+import { ACTION_TOOLS, isActionTool, linkProposals, proposalsForChats, runActionTool, STATUS_LABEL, type Proposal } from './actions';
 import { getAiblok, getHongsam } from './aiblok-hongsam';
 import { sendTelegram } from './alerts';
 import { usdOf } from './claude-cost';
@@ -7,9 +8,10 @@ import { getDentaflow, getSeedbee, getSettings, getSkyplus, getSubs, monthlySom 
 import { buildSignals } from './signals';
 
 /**
- * Hub F3: the owner's own Claude, read-only. One brain for the web chat (/my/chat) and Telegram (@Ferudinbot).
+ * Hub F3/F4: the owner's own Claude. One brain for the web chat (/my/chat) and Telegram (@Ferudinbot).
  *  - Sonnet 5.5 by default; a message starting with "chuqur:" goes to Opus 5.5.
- *  - Tools only READ hub data (the same loaders the pages use). Writes come in F4 (propose -> confirm).
+ *  - Read tools use the same loaders as the pages. Writes (F4, hub data only) are propose_* tools:
+ *    they store a pending my_actions row; the owner's ✅ runs it (see actions.ts).
  *  - History is stored as plain text turns (my_chat); thinking blocks never leave a single request,
  *    so switching Sonnet <-> Opus between turns is safe.
  *  - Monthly budget (HUB_CHAT_BUDGET_USD, default $20): when spent, the chat stops and the owner gets one Telegram note.
@@ -34,7 +36,10 @@ Qoidalar:
 - Faqat o'zbek tilida (lotin), qisqa va aniq javob ber. Avval javob, keyin kerak bo'lsa 2-3 qator izoh.
 - Raqamlarni faqat asboblardan ol. Taxmin qilma, to'qima. Ma'lumot yo'q yoki o'qilmagan bo'lsa, shuni ochiq ayt.
 - Pul: so'mda, minglar orasida bo'sh joy bilan (masalan 1 250 000 so'm). Dollar xarajatlarni $ bilan.
-- Sen faqat o'qiysan: hech narsani o'zgartira, yubora yoki o'chira olmaysan. So'rashsa, buni qayerda qilish mumkinligini ayt (CRM, admin panel) va bu imkoniyat keyingi bosqichda (F4) qo'shilishini eslat.
+- Yozish faqat hub ichida va faqat taklif orqali: obunalar (qo'shish, o'zgartirish, o'chirib qo'yish), eslatmalar, signalni vaqtincha o'chirish, dollar kursi. Buning uchun propose_* asbobini chaqir. Taklif saqlanadi, Ferudin ✅ bosgandagina bajariladi: hech qachon "bajarildi" dema, "tasdiqlang" de. So'ralmagan amalni taklif qilma.
+- Boshqa loyihalarda (DentaFlow, SeedBee, SkyPlus, AI Blok, Hongsam) yozish imkoning yo'q: buni qayerda qilish mumkinligini ayt (o'sha CRM yoki admin panel).
+- Eslatma vaqti Toshkent bo'yicha, ISO formatda +05:00 bilan. "Ertaga ertalab" kabi noaniq vaqtda 09:00 ni ol va javobda vaqtni aniq ayt.
+- Tarixdagi [Taklif: ...] qatorlari avvalgi takliflarning natijasi.
 - Vaqt Toshkent bo'yicha. Har bir xabar boshida [Hozir: ...] belgisi bor, "bugun", "bu oy" shunga qarab.
 - Format: oddiy matn, **qalin**, "- " ro'yxat. Jadval va sarlavha (#) ishlatma: javob Telegramda ham ko'rinadi.
 - Maslahat so'ralsa, raqamlarga tayanib aniq qadam taklif qil; noaniq bo'lsa, qaysi raqam yetishmayotganini ayt.`;
@@ -42,7 +47,7 @@ Qoidalar:
 const PROJECT_KEYS = ['dentaflow', 'seedbee', 'skyplus', 'aiblok', 'hongsam'] as const;
 type ProjectKey = (typeof PROJECT_KEYS)[number];
 
-const TOOLS: Anthropic.Tool[] = [
+const READ_TOOLS: Anthropic.Tool[] = [
   {
     name: 'hub_overview',
     description: "Umumiy holat: shu oy loyihalar bo'yicha tushum (so'm), API xarajati, obunalarning oylik jami va diqqat talab qiladigan signallar. Umumiy savollarda birinchi shuni chaqir.",
@@ -71,6 +76,8 @@ const TOOLS: Anthropic.Tool[] = [
     },
   },
 ];
+
+const TOOLS: Anthropic.Tool[] = [...READ_TOOLS, ...ACTION_TOOLS];
 
 const clip = (v: unknown) => {
   const s = JSON.stringify(v);
@@ -141,19 +148,22 @@ export async function monthChatUsd(): Promise<number> {
   return (data ?? []).reduce((s, r) => s + (Number(r.usd) || 0), 0);
 }
 
-export type ChatRow = { role: 'user' | 'assistant'; text: string; model: string | null; at: string };
+export type ChatRow = { id: number; role: 'user' | 'assistant'; text: string; model: string | null; at: string; proposals: Proposal[] };
 
-/** Turns after the last /yangi (reset), oldest first. */
+/** Turns after the last /yangi (reset), oldest first, with the proposals each answer made. */
 export async function history(channel: Channel, limit = HISTORY): Promise<ChatRow[]> {
   const { data } = await createServiceClient()
-    .from('my_chat').select('role, text, model, at').eq('channel', channel)
+    .from('my_chat').select('id, role, text, model, at').eq('channel', channel)
     .order('id', { ascending: false }).limit(limit + 1);
   const rows: ChatRow[] = [];
   for (const r of data ?? []) {
     if (r.role === 'reset') break;
-    rows.push(r as ChatRow);
+    rows.push({ ...(r as Omit<ChatRow, 'proposals'>), proposals: [] });
   }
-  return rows.slice(0, limit).reverse();
+  const out = rows.slice(0, limit).reverse();
+  const props = await proposalsForChats(out.filter((r) => r.role === 'assistant').map((r) => r.id));
+  for (const r of out) r.proposals = props.get(r.id) ?? [];
+  return out;
 }
 
 export async function resetChat(channel: Channel) {
@@ -172,7 +182,7 @@ async function budgetNote(spent: number) {
 const nowLabel = () =>
   new Intl.DateTimeFormat('uz-UZ', { timeZone: 'Asia/Tashkent', dateStyle: 'full', timeStyle: 'short' }).format(new Date());
 
-export type Answer = { ok: boolean; text: string; model?: string; usd?: number };
+export type Answer = { ok: boolean; text: string; model?: string; usd?: number; proposals?: Proposal[] };
 
 export async function ask(channel: Channel, raw: string): Promise<Answer> {
   const text = raw.trim().slice(0, 4000);
@@ -192,9 +202,12 @@ export async function ask(channel: Channel, raw: string): Promise<Answer> {
   const past = await history(channel);
   const messages: Anthropic.MessageParam[] = [];
   for (const r of past) {
+    const body = r.proposals.length
+      ? `${r.text}\n\n${r.proposals.map((p) => `[Taklif: ${p.summary} — ${STATUS_LABEL[p.status] ?? p.status}${p.result ? `: ${p.result}` : ''}]`).join('\n')}`
+      : r.text;
     const last = messages[messages.length - 1];
-    if (last && last.role === r.role) last.content = `${last.content as string}\n\n${r.text}`;
-    else if (messages.length || r.role === 'user') messages.push({ role: r.role, content: r.text });
+    if (last && last.role === r.role) last.content = `${last.content as string}\n\n${body}`;
+    else if (messages.length || r.role === 'user') messages.push({ role: r.role, content: body });
   }
   if (messages[messages.length - 1]?.role === 'user') messages.pop(); // unanswered turn: drop, the new one replaces it
   messages.push({ role: 'user', content: `[Hozir: ${nowLabel()}, Toshkent]\n${question}` });
@@ -202,6 +215,7 @@ export async function ask(channel: Channel, raw: string): Promise<Answer> {
   const client = new Anthropic();
   const usage = { input: 0, output: 0, cache_read: 0, cache_write: 0 };
   let final: Anthropic.Message | null = null;
+  const proposals: Proposal[] = [];
   try {
     for (let step = 0; step < MAX_STEPS; step++) {
       const res = await client.messages.create({
@@ -229,7 +243,13 @@ export async function ask(channel: Channel, raw: string): Promise<Answer> {
       const results: Anthropic.ToolResultBlockParam[] = await Promise.all(
         calls.map(async (c) => {
           try {
-            return { type: 'tool_result' as const, tool_use_id: c.id, content: await runTool(c.name, (c.input ?? {}) as Record<string, unknown>) };
+            const input = (c.input ?? {}) as Record<string, unknown>;
+            if (isActionTool(c.name)) {
+              const r = await runActionTool(c.name, input, channel);
+              if (r.proposal) proposals.push(r.proposal);
+              return { type: 'tool_result' as const, tool_use_id: c.id, content: r.text };
+            }
+            return { type: 'tool_result' as const, tool_use_id: c.id, content: await runTool(c.name, input) };
           } catch (e) {
             return { type: 'tool_result' as const, tool_use_id: c.id, is_error: true, content: e instanceof Error ? e.message : 'xato' };
           }
@@ -248,11 +268,13 @@ export async function ask(channel: Channel, raw: string): Promise<Answer> {
   if (!answer) answer = 'Javob bo‘sh qaytdi. Qayta so‘rab ko‘ring.';
 
   const usd = usdOf({ model, ...usage });
-  await createServiceClient().from('my_chat').insert([
+  const { data: saved } = await createServiceClient().from('my_chat').insert([
     { channel, role: 'user', text },
     { channel, role: 'assistant', text: answer, model, usd },
-  ]);
-  return { ok: true, text: answer, model, usd };
+  ]).select('id, role');
+  const aid = saved?.find((r) => r.role === 'assistant')?.id;
+  if (aid) await linkProposals(proposals.map((p) => p.id), aid);
+  return { ok: true, text: answer, model, usd, proposals };
 }
 
 const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');

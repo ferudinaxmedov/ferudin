@@ -1,15 +1,53 @@
 'use client';
 
 import { useEffect, useRef, useState, useTransition } from 'react';
-import { ArrowUp, Bot, Brain, PlugZap, RotateCcw } from 'lucide-react';
-import { newChat, sendMessage } from './actions';
+import { ArrowUp, Bot, Brain, Check, PlugZap, RotateCcw, X } from 'lucide-react';
+import type { Proposal } from '@/lib/hub/actions';
+import { decideAction, newChat, sendMessage } from './actions';
 
-type Msg = { role: 'user' | 'assistant'; text: string; html: string | null; model?: string; usd?: number; error?: boolean };
+type Msg = { role: 'user' | 'assistant'; text: string; html: string | null; model?: string; usd?: number; error?: boolean; proposals?: Proposal[] };
+
+const LABEL: Record<string, string> = {
+  pending: 'Taklif', done: 'Bajarildi', rejected: 'Bekor qilindi', expired: 'Muddati o‘tdi', failed: 'Xato',
+};
+
+function ProposalCard({ p: initial }: { p: Proposal }) {
+  const [p, setP] = useState(initial);
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState('');
+  async function act(yes: boolean) {
+    setBusy(true);
+    setErr('');
+    try {
+      const r = await decideAction(p.id, yes);
+      if ('error' in r) setErr(r.error);
+      else setP(r);
+    } catch {
+      setErr('Ulanib bo‘lmadi, qayta bosing');
+    }
+    setBusy(false);
+  }
+  return (
+    <div className={`proposal is-${p.status}`}>
+      <span className="proposal-tag">{LABEL[p.status] ?? p.status}</span>
+      <p>{p.summary}</p>
+      {p.result && p.status !== 'done' && <small>{p.result}</small>}
+      {err && <small className="proposal-err">{err}</small>}
+      {p.status === 'pending' && (
+        <div className="proposal-actions">
+          <button className="btn btn-primary small" onClick={() => act(true)} disabled={busy}><Check size={14} /> Tasdiqlash</button>
+          <button className="btn btn-ghost small" onClick={() => act(false)} disabled={busy}><X size={14} /> Bekor</button>
+        </div>
+      )}
+    </div>
+  );
+}
 
 const SUGGEST = [
   'Bugun nimaga e’tibor berishim kerak?',
   'Bu oy jami tushum qancha, qaysi loyiha yetakchi?',
   'Qaysi obunalar yaqinda to‘lanadi?',
+  'Ertaga 10:00 da Payme hisobotini tekshirishni eslat',
   'chuqur: SeedBee savdosini o‘tgan oy bilan solishtirib tahlil qil',
 ];
 
@@ -36,7 +74,7 @@ export function Chat({ initial, spent, budget, ready }: { initial: Msg[]; spent:
     start(async () => {
       try {
         const r = await sendMessage(question);
-        setMsgs((m) => [...m, { role: 'assistant', text: '', html: r.html, model: r.model, usd: r.usd, error: !r.ok }]);
+        setMsgs((m) => [...m, { role: 'assistant', text: '', html: r.html, model: r.model, usd: r.usd, error: !r.ok, proposals: r.proposals }]);
         if (r.usd) setUsed((u) => u + r.usd!);
       } catch {
         setMsgs((m) => [...m, { role: 'assistant', text: '', html: 'Javob kelmadi (tarmoq yoki vaqt tugadi). Qayta yuboring.', error: true }]);
@@ -58,7 +96,7 @@ export function Chat({ initial, spent, budget, ready }: { initial: Msg[]; spent:
       <header className="head rise">
         <div>
           <h1>Claude</h1>
-          <p>Loyihalaringiz bo&apos;yicha savol bering · faqat o&apos;qiydi · bu oy ${used.toFixed(2)} / ${budget}</p>
+          <p>Savol bering yoki amal so&apos;rang (✅ bilan bajariladi) · bu oy ${used.toFixed(2)} / ${budget}</p>
         </div>
         <div className="head-actions">
           <button className="btn btn-ghost small" onClick={reset} disabled={pending || !msgs.length}>
@@ -94,6 +132,7 @@ export function Chat({ initial, spent, budget, ready }: { initial: Msg[]; spent:
             ) : (
               <div key={i} className={`bubble ai${m.error ? ' err' : ''}`}>
                 <div dangerouslySetInnerHTML={{ __html: m.html ?? '' }} />
+                {m.proposals?.map((p) => <ProposalCard key={p.id} p={p} />)}
                 {m.model && (
                   <small className="bubble-meta">
                     {modelName(m.model) === 'Opus' ? <Brain size={12} /> : <Bot size={12} />} {modelName(m.model)}

@@ -337,3 +337,21 @@ select.input { appearance: none; background-image: linear-gradient(45deg, transp
   .bubble { max-width: 92%; }
 }
 @media (prefers-reduced-motion: reduce) { .typing span { animation: none; opacity: 0.6; } }
+
+/* F4 proposal cards (confirm-then-act) */
+.proposal {
+  margin-top: 10px; padding: 10px 12px; border-radius: 10px;
+  background: var(--surface-3); border: 1px solid var(--line-2); border-left: 3px solid var(--warn);
+}
+.proposal p { margin: 4px 0 0; color: var(--text); }
+.proposal small { display: block; margin-top: 4px; color: var(--muted); }
+.proposal .proposal-err { color: #fca5a5; }
+.proposal-tag { font-size: 11px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--warn); }
+.proposal.is-done { border-left-color: var(--ok); }
+.proposal.is-done .proposal-tag { color: var(--ok); }
+.proposal.is-rejected, .proposal.is-expired { border-left-color: var(--faint); opacity: 0.75; }
+.proposal.is-rejected .proposal-tag, .proposal.is-expired .proposal-tag { color: var(--faint); }
+.proposal.is-failed { border-left-color: var(--bad); }
+.proposal.is-failed .proposal-tag { color: var(--bad); }
+.proposal-actions { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+.proposal-actions .btn { min-height: 36px; }
