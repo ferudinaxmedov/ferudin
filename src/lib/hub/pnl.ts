@@ -1,4 +1,5 @@
 import { createServiceClient } from '@/lib/supabase';
+import { usdOf } from './claude-cost';
 import { getAiblok, getHongsam } from './aiblok-hongsam';
 import { monthChatUsd } from './assistant';
 import { getDentaflow, getSeedbee, getSettings, getSkyplus, getSubs, monthlySom } from './data';
@@ -8,7 +9,7 @@ import { getDentaflow, getSeedbee, getSettings, getSkyplus, getSubs, monthlySom 
  *  - Revenue comes from each project's stats endpoint (same numbers as its hub page).
  *  - Subscriptions: monthly equivalent of active subscriptions in that project's bucket (yearly / 12).
  *    "umumiy" and "kontent" buckets are shared costs, shown on their own row.
- *  - API: DentaFlow measured cost, SeedBee Claude, Hongsam search, hub chat (shared).
+ *  - API: DentaFlow measured cost, SeedBee Claude, SkyPlus Claude (my_events), Hongsam search, hub chat (shared).
  *  - Own expenses: only SkyPlus records them (its CRM "chiqim").
  * null = not readable / not measured; the UI says so instead of showing 0.
  */
@@ -36,6 +37,8 @@ export type Pnl = {
   shared: { subs: number; subsMissing: number; api: number };
   totals: { revenue: number; costs: number; profit: number; revenuePrev: number };
   trend: { key: string; byProject: Record<string, number> }[];
+  /** Claude (Anthropic) spend this month in USD, counted by each project from its own token logs × list price. */
+  claude: { usd: number; byProject: { key: string; name: string; usd: number | null }[] };
 };
 
 const NAMES: Record<string, string> = { dentaflow: 'DentaFlow', seedbee: 'SeedBee', skyplus: 'SkyPlus', hongsam: 'Hongsam', aiblok: 'AI Blok', ferudin: 'ferudin.uz' };
@@ -51,9 +54,17 @@ export async function getGoals(month = tashkentMonth()): Promise<Record<string, 
   return Object.fromEntries((data ?? []).map((g) => [g.project, Number(g.target)]));
 }
 
+/** SkyPlus has no usage table of its own: its CRM posts one "ai" event per Claude call to /api/hub/event. */
+export async function skyplusClaudeUsd(): Promise<number> {
+  const t = new Date(Date.now() + 5 * 3_600_000);
+  const start = new Date(Date.UTC(t.getUTCFullYear(), t.getUTCMonth(), 1) - 5 * 3_600_000).toISOString();
+  const { data } = await createServiceClient().from('my_events').select('meta').eq('project', 'skyplus').eq('kind', 'ai').gte('at', start).limit(20_000);
+  return (data ?? []).reduce((s, e) => s + usdOf(e.meta as Record<string, unknown>), 0);
+}
+
 export async function getPnl(): Promise<Pnl> {
-  const [subs, { usdRate }, df, sb, sp, ab, hs, chatUsd, goals] = await Promise.all([
-    getSubs(), getSettings(), getDentaflow(), getSeedbee(), getSkyplus(), getAiblok(), getHongsam(), monthChatUsd(), getGoals(),
+  const [subs, { usdRate }, df, sb, sp, ab, hs, chatUsd, goals, spUsd] = await Promise.all([
+    getSubs(), getSettings(), getDentaflow(), getSeedbee(), getSkyplus(), getAiblok(), getHongsam(), monthChatUsd(), getGoals(), skyplusClaudeUsd(),
   ]);
   void ab;
   const month = tashkentMonth();
@@ -86,7 +97,7 @@ export async function getPnl(): Promise<Pnl> {
       key: 'skyplus', name: NAMES.skyplus,
       revenue: sp.ok ? sp.data.money.month.inUzs : null,
       revenuePrev: sp.ok ? sp.data.money.prev.inUzs : null,
-      api: null,
+      api: spUsd * usdRate,
       own: sp.ok ? sp.data.money.month.outUzs : null,
     },
     {
@@ -135,7 +146,18 @@ export async function getPnl(): Promise<Pnl> {
     return { key, byProject };
   });
 
+  const dfAnth = df.ok ? df.data.costs.providers.find((x) => x.provider === 'anthropic') : undefined;
+  const claudeBy = [
+    { key: 'dentaflow', name: NAMES.dentaflow, usd: dfAnth ? dfAnth.month / (df.ok && df.data.costs.usdRate ? df.data.costs.usdRate : usdRate) : null },
+    { key: 'seedbee', name: NAMES.seedbee, usd: sb.ok && sb.data.ai ? sb.data.ai.usd.month : null },
+    { key: 'skyplus', name: NAMES.skyplus, usd: spUsd },
+    { key: 'hongsam', name: NAMES.hongsam, usd: hs.ok ? hs.data.search.usdMonth : null },
+    { key: 'hub', name: 'Hub (Claude chat)', usd: chatUsd },
+  ];
+  const claude = { usd: claudeBy.reduce((a, x) => a + (x.usd ?? 0), 0), byProject: claudeBy };
+
   return {
+    claude,
     month, day, daysInMonth, usdRate, rows, shared,
     totals: { revenue, costs, profit: revenue - costs, revenuePrev: rows.reduce((a, r) => a + (r.revenuePrev ?? 0), 0) },
     trend,

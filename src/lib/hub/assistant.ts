@@ -102,8 +102,9 @@ const unwrap = (r: { ok: true; data: unknown } | { ok: false; reason: string }) 
 async function runTool(name: string, input: Record<string, unknown>): Promise<string> {
   switch (name) {
     case 'hub_overview': {
-      const [subs, { usdRate }, df, sb, sp, ab, hs, chatUsd] = await Promise.all([
+      const [subs, { usdRate }, df, sb, sp, ab, hs, chatUsd, spUsd] = await Promise.all([
         getSubs(), getSettings(), getDentaflow(), getSeedbee(), getSkyplus(), getAiblok(), getHongsam(), monthChatUsd(),
+        import('./pnl').then((m) => m.skyplusClaudeUsd()),
       ]);
       const active = subs.filter((s) => s.active);
       return clip({
@@ -117,6 +118,7 @@ async function runTool(name: string, input: Record<string, unknown>): Promise<st
           dentaflow: df.ok ? df.data.costs.total.month : null,
           seedbeeAi: sb.ok && sb.data.ai ? Math.round(sb.data.ai.usd.month * usdRate) : null,
           hongsamSearch: hs.ok ? Math.round(hs.data.search.usdMonth * usdRate) : null,
+          skyplusAi: Math.round(spUsd * usdRate),
           hubChat: Math.round(chatUsd * usdRate),
         },
         usdRate,

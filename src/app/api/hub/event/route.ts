@@ -4,7 +4,7 @@ import { createServiceClient } from '@/lib/supabase';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-// O'z bazasi yo'q loyihalar (Hongsam) hubga hodisa yuboradi: POST, Authorization: Bearer <token>.
+// Loyihalar (Hongsam hodisalari, SkyPlus Claude sarfi) hubga hodisa yuboradi: POST, Authorization: Bearer <token>.
 // Ism, telefon, manzil qabul qilinmaydi: faqat tur, summa va bir nechta qisqa belgilar.
 
 const SOURCES: Record<string, { tokenEnv: string; kinds: string[]; keys: string[] }> = {
@@ -12,6 +12,12 @@ const SOURCES: Record<string, { tokenEnv: string; kinds: string[]; keys: string[
     tokenEnv: 'HONGSAM_HUB_TOKEN',
     kinds: ['order', 'guide', 'start', 'search'],
     keys: ['id', 'qty', 'region', 'via', 'lang', 'contact', 'from', 'model', 'input', 'output', 'cache_read', 'cache_write'],
+  },
+  // SkyPlus CRM: one "ai" event per Claude call (tokens only), so the hub can price SkyPlus's Claude spend.
+  skyplus: {
+    tokenEnv: 'SKYPLUS_HUB_TOKEN',
+    kinds: ['ai'],
+    keys: ['feature', 'model', 'input', 'output', 'cache_read', 'cache_write'],
   },
 };
 

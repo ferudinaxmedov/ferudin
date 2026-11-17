@@ -123,7 +123,7 @@ export default async function ProfitPage() {
         </div>
         <p className="faint small" style={{ margin: '10px 0 0' }}>{anth
           ? <>Anthropic hisobi (haqiqiy, bu oy): <b>${anth.usd.toFixed(2)}</b> ≈ {compact(anth.usd * p.usdRate)} so‘m{anth.refreshed_at ? ` · ma’lumot ${new Date(anth.refreshed_at).toLocaleString('uz-UZ', { timeZone: 'Asia/Tashkent', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })} holatiga` : ''}. Jadvaldagi API ustuni loyihalarning o‘z hisobi. </>
-          : <>Anthropic’ning haqiqiy hisobini ko‘rish uchun Vercel’ga ANTHROPIC_ADMIN_KEY qo‘shing. </>}
+          : <>Claude (Anthropic) bu oy: <b>${p.claude.usd.toFixed(2)}</b> ≈ {compact(p.claude.usd * p.usdRate)} so‘m ({p.claude.byProject.filter((x) => x.usd !== null && x.usd >= 0.005).map((x) => `${x.name} $${(x.usd ?? 0).toFixed(2)}`).join(' · ') || 'hali sarf yo‘q'}). Bu loyihalarning o‘z token hisobi × narx, taxminiy; aniq summa Console’da. </>}
           Hongsam faqat bu va o‘tgan oy uchun bor. Xarajatlarning oyma-oy tarixi hali saqlanmaydi, shuning uchun grafik faqat tushumni ko‘rsatadi. Kurs: {p.usdRate.toLocaleString('ru-RU')} so‘m.</p>
       </div>
     </section>
